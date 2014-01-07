@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>波の伝播</title>
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<style>
+		input[type="text"] {
+			width: 2em;
+		}
+		.axis path {
+			fill: none;
+			stroke: green;
+		}
+		.axis line {
+			stroke: green;
+		}
+		.axis text {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+<svg></svg>
+<div id="control">
+	<input type="button" id="start" value="スタート">
+	<input type="button" id="pause" value="ポーズ">
+	<input type="button" id="frame+" value="コマ送り">
+	<input type="button" id="frame-" value="コマ戻し">
+	<br>
+	波長: <input type="text" id="wavelength" value=5>
+	速さ: <input type="text" id="velocity" value=2>
+</div>
+<div id="result">
+</div>
+<script>
+(function() {
+	var w = 900, h = 400;
+	var fps = 60, dt = 1/fps;
+	var playing = true;
+	var xMin = -5, xMax = 5, yMin = -2, yMax=2;
+	var v, wl, freq;
+	var initialT = xMin/v;
+	var t = initialT;
+	var dt = 1/fps;
+
+	var x = [];
+	var pointNumber = 50;
+	var pointWidth = (xMax-xMin)/pointNumber;
+	for(var i=0; i<=pointNumber; i++) {
+		x.push( xMin + pointWidth * (i+1/2) );
+	}
+
+	getParamerters();
+	start();
+
+	function getParamerters() {
+		wl = document.getElementById("wavelength").value;
+		v = document.getElementById("velocity").value;
+		initialT = xMin/v;
+		freq = v/wl;
+	}
+
+	document.getElementById("wavelength").onchange = getParamerters;
+	document.getElementById("velocity").onchange = getParamerters;
+
+	document.getElementById("start").onclick = start;
+	function start() {
+		t = initialT;
+		playing = true;
+		document.getElementById("pause").value = "ポーズ";
+	}
+	document.getElementById("pause").onclick = function() {
+		playing = !playing;
+		document.getElementById("pause").value = playing ? "ポーズ" : "再開";
+	}
+	document.getElementById("frame+").onclick = function() { t += dt; };
+	document.getElementById("frame-").onclick = function() { t -= dt; };
+
+	function wave(x, t) {
+		return t - x/v > 0 ? Math.sin(2*Math.PI*freq*(t-x/v)) : 0;
+	}
+
+	var data = {};
+	calc();
+	function calc() {
+		data = x.map(function(p) { return {x: p, y: wave(p, t)}; });
+	}
+
+	var svg = d3.select("svg")
+		.style({width: w, height: h});
+	var xScale = d3.scale.linear()
+		.range([0, w])
+		.domain([xMin, xMax]);
+	var yScale = d3.scale.linear()
+		.range([h, 0])
+		.domain([yMin, yMax]);
+	var xAxis = d3.svg.axis()
+		.scale(xScale)
+		.orient("bottom")
+		.tickSize(5);
+	svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0,"+yScale(0)+")")
+		.call(xAxis)
+		.selectAll(".tick > line")
+		.attr("y1", -5);
+	var yLine = svg.selectAll(".yLine")
+		.data(data)
+		.enter()
+		.append("line")
+		.attr("class", "yLine")
+		.attr("x1", function(d) { return xScale(d.x); } )
+		.attr("y1", yScale(0))
+		.attr("x2", function(d) { return xScale(d.x); } )
+		.attr("y2", function(d) { return yScale(d.y); })
+		.attr("stroke", "grey");
+	var r = (xScale(pointWidth) - xScale(0))*0.4;
+	var yPoint = svg.selectAll(".point")
+		.data(data)
+		.enter()
+		.append("circle")
+		.attr("class", "point")
+		.attr("r", r)
+		.attr("cx", function(d) { return xScale(d.x); })
+		.attr("cy", function(d) { return yScale(d.y); })
+		.attr("fill", "steelblue");
+
+	function loop() {
+		requestAnimationFrame(loop);
+		if(playing) { t += dt; }
+		calc();
+		yPoint.data(data)
+			.attr("cy", function(d) { return yScale(d.y); });
+		yLine.data(data)
+			.attr("y2", function(d) { return yScale(d.y); });
+	}
+	loop();
+})();
+</script>
+</body>
+</html>

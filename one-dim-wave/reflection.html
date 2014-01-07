@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>自由端/固定端反射</title>
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<style>
+		input[type="text"] {
+			width: 2em;
+		}
+		.axis path {
+			fill: none;
+			stroke: grey;
+		}
+		.axis line {
+			stroke: grey;
+		}
+		.axis text {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+<svg></svg>
+<div id="control">
+<input type="button" id="start" value="スタート">
+<input type="button" id="pause" value="ポーズ">
+<input type="button" id="frame+" value="コマ送り">
+<input type="button" id="frame-" value="コマ戻し">
+<br>
+<input type="radio" name="boundary" value="1" checked="checked">自由端
+<input type="radio" name="boundary" value="-1">固定端<br>
+<input type="radio" name="shape" value="gauss" checked="checked">山型パルス
+<input type="radio" name="shape" value="N">N型パルス
+<input type="radio" name="shape" value="sin">正弦波
+<br>
+速さ<input type="text" id="v" value=1>m/s
+幅<input type="text" id="width" value=2>m
+</div>
+<div id="result">
+</div>
+<script>
+(function() {
+	var w = 900, h = 400;
+	var fps = 60, dt = 1/fps;
+	var playing = true;
+	var xMin = -4, xMax = 2, yMin = -2, yMax=2;
+	var v = 1, width = 1;
+	var initialT = xMin/v;
+	var t = initialT;
+	var dt = 1/fps;
+
+	var x = [];
+	var stepNumber = 200;
+	var stepWidth = (xMax-xMin)/stepNumber;
+	for(var i=0; i<=stepNumber; i++) {
+		x.push(xMin + stepWidth * i);
+	}
+	var xLeft = x.filter(function(d) { return d <= 0; });
+	xLeft.push(0);
+
+	var shape; // "gauss", "sin", or "N"
+	var boundary; // +1 for free, -1 for fixed;
+
+	start();
+
+	function getParameters() {
+		boundary = getCheckedValue(document.getElementsByName("boundary"));
+		shape = getCheckedValue(document.getElementsByName("shape"));
+		width = document.getElementById("width").value;
+		v = document.getElementById("v").value;
+		initialT = xMin/v;
+	}
+
+	document.getElementById("start").onclick = start;
+	function start() {
+		getParameters();
+		t = initialT;
+		playing = true;
+		document.getElementById("pause").value = "ポーズ";
+	}
+
+	document.getElementById("pause").onclick = function() {
+		playing = !playing;
+		document.getElementById("pause").value = playing ? "ポーズ" : "再開";
+	}
+
+	document.getElementById("frame+").onclick = function() { t += dt; };
+	document.getElementById("frame-").onclick = function() { t -= dt; };
+
+	function waveform(x) {
+		switch (shape) {
+			case "gauss":
+				return Math.exp(-Math.pow(x/width*3, 2));
+				break;
+			case "sin":
+				return x > 0 ? Math.sin(2*Math.PI*x/width) : 0;
+				break;
+			case "N":
+				return x*6/width * Math.exp(-Math.pow(x/width*3, 2));
+				break;
+		}
+	}
+
+	function incidentWave(x, t) {
+		return waveform( v*t - x );
+	}
+
+	function reflectedWave(x, t) {
+		return boundary * waveform( v*t + x );
+	}
+
+	var data = {};
+	calc();
+	function calc() {
+		data.incident = x.map( function(p) { return {x: p, y: incidentWave(p, t)}; } );
+		data.reflected = xLeft.map(function(p) { return {x: p, y: reflectedWave(p, t)}; } );
+		data.summed = xLeft.map( function(p) { return {x: p, y : incidentWave(p, t) + reflectedWave(p, t)}; } );
+	}
+
+	console.log(data.incident[100]);
+
+	var svg = d3.select("svg")
+		.style({width: w, height: h});
+
+	var xScale = d3.scale.linear()
+		.range([0, w])
+		.domain([xMin, xMax]);
+
+	var yScale = d3.scale.linear()
+		.range([h, 0])
+		.domain([yMin, yMax]);
+
+	var xAxis = d3.svg.axis()
+		.scale(xScale)
+		.tickValues([-5,-4,-3,-2,-1,0,1,2])
+		.orient("bottom");
+
+	var line = d3.svg.line()
+		.x(function(d) { return xScale(d.x); })
+		.y(function(d) { return yScale(d.y); });
+
+	svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0,"+yScale(0)+")")
+		.call(xAxis)
+		.selectAll(".tick line")
+		.attr("y1", -5)
+		.attr("y2", 5);
+
+	var curve = {};
+	curve.incident = svg.append("path")
+		.datum(data.incident)
+		.attr("class", "curve")
+		.attr("d", line)
+		.style({
+			fill: "none",
+			stroke: "steelblue",
+			"stroke-width": "1px"
+		});
+
+	curve.reflected = svg.append("path")
+		.datum(data.reflected)
+		.attr("class", "curve")
+		.attr("d", line)
+		.style({
+			fill: "none",
+			stroke: "green",
+			"stroke-width": "1px"
+		});
+
+	curve.summed = svg.append("path")
+		.datum(data.summed)
+		.attr("class", "curve")
+		.attr("d", line)
+		.style({
+			fill: "none",
+			stroke: "red",
+			"stroke-width": "2px"
+		});
+
+	svg.append("rect")
+		.attr("x", xScale(0))
+		.attr("y", 0)
+		.attr("width", xScale(xMax)-xScale(0))
+		.attr("height", h)
+		.attr("fill", "#000")
+		.attr("fill-opacity", 0.2);
+
+	var endpoint = svg.append("circle")
+		.attr("r", 4)
+		.attr("cx", xScale(0))
+		.attr("cy", yScale(incidentWave(0,t) + reflectedWave(0, t)))
+		.attr("fill", "red");
+
+	function loop() {
+		requestAnimationFrame(loop);
+		if(playing) { t += dt; }
+		calc();
+		curve.incident.datum(data.incident).attr("d", line);
+		curve.reflected.datum(data.reflected).attr("d", line);
+		curve.summed.datum(data.summed).attr("d", line);
+		endpoint.attr("cy", yScale(incidentWave(0,t) + reflectedWave(0, t)));
+	}
+	loop();
+
+	function getCheckedValue(elements) {
+		for(var i=0; i<elements.length; i++) {
+			if(elements[i].checked) {
+				return elements[i].value;
+				break;
+			}
+		}
+	}
+})();
+</script>
+</body>
+</html>
