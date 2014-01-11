@@ -1,24 +1,33 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-	<meta charset="utf-8">
-	<title>波の伝播</title>
-	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-	<style>
-		input[type="text"] {
-			width: 2em;
-		}
-		.axis path {
-			fill: none;
-			stroke: green;
-		}
-		.axis line {
-			stroke: green;
-		}
-		.axis text {
-			display: none;
-		}
-	</style>
+<meta charset="utf-8">
+<title>波の伝播</title>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<style>
+	input[type="text"] {
+		width: 2em;
+	}
+
+	.axis path {
+		fill: none;
+		stroke: green;
+	}
+
+	.axis line {
+		stroke: green;
+	}
+
+	.axis text {
+		display: none;
+	}
+
+	footer {
+		border-top: solid 1px grey;
+		margin-top: 10px;
+		padding: 5px;
+	}
+</style>
 </head>
 <body>
 <svg></svg>
@@ -33,6 +42,10 @@
 </div>
 <div id="result">
 </div>
+<footer>
+<!-- ライセンス表示 -->
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。
+</footer>
 <script>
 (function() {
 	var w = 900, h = 400;
