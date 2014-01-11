@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>光の屈折</title>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<style>
+	input[type="text"] {
+		width: 2.5em;
+	}
+
+	footer {
+		border-top: solid 1px grey;
+		margin-top: 10px;
+		padding: 5px;
+	}
+
+	.axis path {
+		fill: none;
+		stroke: grey;
+	}
+
+	.tick {
+		display: none;
+	}
+
+	.axis text {
+		display: none;
+	}
+</style>
+</head>
+<body>
+<div>
+相対屈折率n: <input type="text" value="1.5" id="n">
+</div>
+<svg></svg>
+<footer>
+<!-- ライセンス表示 -->
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。
+</footer>
+<script>
+(function() {
+	var w = 960, h = 540;
+	var aspect = w/h;
+	var innerR = 70;
+	var outerR = 90;
+	var inputN = document.getElementById("n");
+	var n = Number(inputN.value);
+	var criticalAngle = Math.asin(n); // 臨界角
+	var arg = Math.PI*150/180;
+	var incidentCos, incidentSin, refractedCos, refractedSin;
+	var data;
+
+	var svg = d3.select("svg")
+			.style({width: w, height: h})
+			.on("mousemove", function() {
+				arg = Math.atan2( -d3.mouse(this)[1]+yScale(0), d3.mouse(this)[0]-xScale(0) );
+			});
+
+	var xScale = d3.scale.linear()
+		.domain([-100*aspect, 100*aspect])
+		.range([0, w]);
+	var yScale = d3.scale.linear()
+		.domain([-100, 100])
+		.range([h, 0]);
+
+	var xAxis = d3.svg.axis()
+		.scale(xScale)
+		.orient("bottom");
+	var yAxis = d3.svg.axis()
+		.scale(yScale)
+		.orient("left");
+	svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0,"+yScale(0)+")")
+		.call(xAxis);
+	svg.append("g")
+		.attr("class", "y axis")
+		.attr("transform", "translate("+xScale(0)+",0)")
+		.call(yAxis);
+
+	var r = xScale(innerR) - xScale(0);
+	svg.append("path")
+		.attr("class", "lens")
+		.attr("d", "M "+r+" 0 A "+r+" "+r+ " 0 1 1 "+(-r)+" 0 L 0 0 Z")
+		.attr("transform", "translate("+xScale(0)+","+yScale(0)+")")
+		.style("fill", "steelblue")
+		.style("fill-opacity", 0.5);
+
+	calc();
+
+	function calc() {
+		n = Number(inputN.value);
+		incidentCos = Math.cos(arg);
+		incidentSin = Math.sin(arg);
+		if (incidentSin >= 0) {
+			refractedCos = -incidentCos/n;
+			refractedSin = -Math.sqrt(1 - Math.pow(refractedCos, 2));
+		} else if (incidentSin < 0) {
+			refractedCos = -incidentCos*n;
+			refractedSin = Math.sqrt(1 - Math.pow(refractedCos, 2));
+		}
+		if (Math.abs(refractedCos) > 1) { // 全反射
+			refractedCos = 0;
+			refractedSin = 0;
+		}
+		data = [
+			{ name: "incident", x: outerR * incidentCos, y: outerR * incidentSin, stroke: "orange" },
+			{ name: "reflected", x: -outerR * incidentCos, y: outerR * incidentSin, stroke: "orange" },
+			{ name: "refracted", x: outerR * refractedCos, y: outerR * refractedSin, stroke: "orange" }
+		];
+	}
+
+	var ray = svg.selectAll(".ray")
+		.data(data)
+		.enter()
+		.append("line")
+		.attr("class", "ray")
+		.attr("x1", xScale(0))
+		.attr("y1", yScale(0))
+		.attr("x2", function(d) { return xScale(d.x); })
+		.attr("y2", function(d) { return yScale(d.y); })
+		.attr("stroke", function(d) { return d.stroke; })
+		.attr("stroke-width", 2);
+
+	var source = svg.append("g")
+		.attr("class", "source")
+		.append("rect")
+		.attr("width", 60)
+		.attr("height", 20)
+		.attr("x", -30)
+		.attr("y", -10)
+		.attr("fill", "black")
+		.attr("transform", "translate("+xScale(data[0].x)+" "+yScale(data[0].y)+") rotate("+(-arg*180/Math.PI)+")");
+
+	loop();
+
+	function loop() {
+		requestAnimationFrame(loop);
+		calc();
+		ray.data(data)
+			.attr("x2", function(d) { return xScale(d.x); })
+			.attr("y2", function(d) { return yScale(d.y); });
+		source
+			.attr("transform", "translate("+xScale(data[0].x)+" "+yScale(data[0].y)+") rotate("+(-arg*180/Math.PI)+")");
+	}
+
+})();
+</script>
+</body>
+</html>
