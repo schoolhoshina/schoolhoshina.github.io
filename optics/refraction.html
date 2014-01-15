@@ -55,6 +55,7 @@
 			.style({width: w, height: h})
 			.on("mousedown", function() {
 				dragging = true;
+				arg = Math.atan2(-d3.mouse(this)[1]+yScale(0), d3.mouse(this)[0]-xScale(0));
 			})
 			.on("mouseup", function() {
 				dragging = false;
@@ -116,11 +117,11 @@
 
 		data = [];
 
-		data.push({name: "incident", arg: arg, stroke: "orange", arcFill: "red"});
-		data.push({name: "reflected", arg: principalArg(Math.PI - arg), stroke: "orange", arcFill: "green"});
+		data.push({label: "入射角", arg: arg, stroke: "orange", arcFill: "red"});
+		data.push({label: "反射角", arg: principalArg(Math.PI - arg), stroke: "orange", arcFill: "green"});
 
 		if (refractedArg != null) {
-			data.push({name: "refracted", arg: principalArg(refractedArg), stroke: "orange", arcFill: "yellow"});
+			data.push({label: "屈折角", arg: principalArg(refractedArg), stroke: "orange", arcFill: "yellow"});
 		}
 	}
 
@@ -130,11 +131,18 @@
 		.attr("height", 20)
 		.attr("x", 0)
 		.attr("y", -10)
-		.attr("fill", "black")
+		.attr("fill", "grey")
 		.attr(
 			"transform",
 			"translate("+xScale(outerR * Math.cos(arg))+" "+yScale(outerR * Math.sin(arg))+") rotate("+(-arg*180/Math.PI)+")"
 		);
+
+	var sourceLabel = svg.append("text")
+		.text("光源")
+		.attr("x", xScale((outerR+22) * Math.cos(arg)))
+		.attr("y", yScale((outerR+22) * Math.sin(arg)))
+		.attr("text-anchor", Math.cos(arg) > 0 ? "start" : "end")
+		.attr("dy", Math.sin(arg) > 0 ? 0 : 12);
 
 	loop();
 
@@ -160,6 +168,7 @@
 			.data(data)
 			.exit()
 			.remove();
+
 		svg.selectAll(".arc")
 			.data(data)
 			.attr("d", function(d) {
@@ -190,10 +199,36 @@
 			.exit()
 			.remove();
 
+		svg.selectAll(".label")
+			.data(data)
+			.attr("x", function(d) { return xScale(arcR * 1.2 * Math.cos(d.arg)); })
+			.attr("y", function(d) { return yScale(arcR * 1.2 * Math.sin(d.arg)); })
+			.attr("text-anchor", function(d) { return Math.cos(d.arg) > 0 ? "start" : "end"; })
+			.attr("dy", function(d) { return Math.sin(d.arg) > 0 ? 0 : 12; })
+			.enter()
+			.append("text")
+			.attr("class", "label")
+			.text(function(d) { return d.label; })
+			.attr("x", function(d) { return xScale(arcR * 1.2 * Math.cos(d.arg)); })
+			.attr("y", function(d) { return yScale(arcR * 1.2 * Math.sin(d.arg)); })
+			.attr("text-anchor", function(d) { return Math.cos(d.arg) > 0 ? "start" : "end"; })
+			.attr("dy", function(d) { return Math.sin(d.arg) > 0 ? 0 : 12; });
+
+		svg.selectAll(".label")
+			.data(data)
+			.exit()
+			.remove();
+
 		source.attr(
 			"transform",
 			"translate("+xScale(outerR * Math.cos(arg))+" "+yScale(outerR * Math.sin(arg))+") rotate("+(-arg*180/Math.PI)+")"
 		);
+
+		sourceLabel
+			.attr("x", xScale((outerR+22) * Math.cos(arg)))
+			.attr("y", yScale((outerR+22) * Math.sin(arg)))
+			.attr("text-anchor", Math.cos(arg) > 0 ? "start" : "end")
+			.attr("dy", Math.sin(arg) > 0 ? 0 : 12);
 	}
 
 function principalArg(arg) {
