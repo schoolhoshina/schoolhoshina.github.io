@@ -42,7 +42,8 @@
 (function() {
 	var w = 960, h = 540, aspect = w/h;
 	var xDomain = [-100*aspect, 100*aspect], yDomain = [-100, 100];
-	var innerR = 70, outerR = 90;
+	var outerR = 90;
+	var arcR = 10;
 	var inputN = document.getElementById("n");
 	var n = Number(inputN.value);
 	var arg = Math.PI*150/180;
@@ -84,8 +85,8 @@
 		.attr("class", "y axis")
 		.attr("transform", "translate("+xScale(0)+",0)")
 		.call(yAxis);
-
-	var lensR = xScale(innerR) - xScale(0);
+	
+	var lensR = xScale(70) - xScale(0);
 	svg.append("path")
 		.attr("class", "lens")
 		.attr("d", "M "+lensR+" 0 A "+lensR+" "+lensR+" 0 1 1 "+(-lensR)+" 0 L 0 0 Z")
@@ -115,11 +116,11 @@
 
 		data = [];
 
-		data.push({name: "incident", arg: arg, stroke: "orange"});
-		data.push({name: "reflected", arg: Math.PI - arg, stroke: "orange"});
+		data.push({name: "incident", arg: arg, stroke: "orange", arcFill: "red"});
+		data.push({name: "reflected", arg: principalArg(Math.PI - arg), stroke: "orange", arcFill: "green"});
 
 		if (refractedArg != null) {
-			data.push({name: "refracted", arg: refractedArg, stroke: "orange"});
+			data.push({name: "refracted", arg: principalArg(refractedArg), stroke: "orange", arcFill: "yellow"});
 		}
 	}
 
@@ -159,12 +160,59 @@
 			.data(data)
 			.exit()
 			.remove();
+		svg.selectAll(".arc")
+			.data(data)
+			.attr("d", function(d) {
+				return angleToArc(
+					xScale(arcR)-xScale(0),
+					xScale(0), yScale(0),
+					d.arg >= 0 ? halfPI : -halfPI,
+					d.arg
+				);
+			})
+			.enter()
+			.append("path")
+			.attr("class", "arc")
+			.attr("d", function(d) {
+				return angleToArc(
+					xScale(arcR)-xScale(0),
+					xScale(0), yScale(0),
+					d.arg >= 0 ? halfPI : -halfPI,
+					d.arg
+				);
+			})
+			.attr("stroke", "none")
+			.attr("fill", function(d) { return d.arcFill; })
+			.attr("fill-opacity", 0.5);
+
+		svg.selectAll(".arc")
+			.data(data)
+			.exit()
+			.remove();
 
 		source.attr(
 			"transform",
 			"translate("+xScale(outerR * Math.cos(arg))+" "+yScale(outerR * Math.sin(arg))+") rotate("+(-arg*180/Math.PI)+")"
 		);
 	}
+
+function principalArg(arg) {
+	return ((arg + Math.PI) % (2*Math.PI)) - Math.PI;
+}
+
+function angleToArc(r, x0, y0, arg1, arg2) {
+	var x1 = x0 + r * Math.cos(arg1);
+	var y1 = y0 - r * Math.sin(arg1);
+	var x2 = x0 + r * Math.cos(arg2);
+	var y2 = y0 - r * Math.sin(arg2);
+	var str = "M " + x0 + " " + y0 + " L "+x1+" "+y1;
+	str = str + " A "+r+" "+r+" 0 ";
+	var angle = (Math.abs(arg2 - arg1)) % (2*Math.PI);
+	str = str + (angle > Math.PI ? 1 : 0) +" "; // large-arc-flag
+	str = str + (arg2 > arg1 ? 0 : 1) + " "; // sweep-flag
+	str = str + x2 + " " + y2 + " Z";
+	return str;
+}
 
 })();
 </script>
