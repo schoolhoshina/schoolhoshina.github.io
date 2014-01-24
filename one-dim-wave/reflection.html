@@ -11,11 +11,11 @@
 
 	.axis path {
 		fill: none;
-		stroke: grey;
+		stroke: #7f878f;
 	}
 
 	.axis line {
-		stroke: grey;
+		stroke: #7f878f;
 	}
 
 	.axis text {
@@ -153,6 +153,13 @@
 		.x(function(d) { return xScale(d.x); })
 		.y(function(d) { return yScale(d.y); });
 
+	svg.append("rect")
+		.attr("x", xScale(0))
+		.attr("y", 0)
+		.attr("width", xScale(xMax)-xScale(0))
+		.attr("height", h)
+		.attr("fill", "#c8c8cb");
+
 	svg.append("g")
 		.attr("class", "x axis")
 		.attr("transform", "translate(0,"+yScale(0)+")")
@@ -168,7 +175,7 @@
 		.attr("d", line)
 		.style({
 			fill: "none",
-			stroke: "steelblue",
+			stroke: "#0041ff",
 			"stroke-width": "1px"
 		});
 
@@ -178,7 +185,7 @@
 		.attr("d", line)
 		.style({
 			fill: "none",
-			stroke: "green",
+			stroke: "#35a16b",
 			"stroke-width": "1px"
 		});
 
@@ -188,23 +195,15 @@
 		.attr("d", line)
 		.style({
 			fill: "none",
-			stroke: "red",
+			stroke: "#ff2800",
 			"stroke-width": "2px"
 		});
-
-	svg.append("rect")
-		.attr("x", xScale(0))
-		.attr("y", 0)
-		.attr("width", xScale(xMax)-xScale(0))
-		.attr("height", h)
-		.attr("fill", "#000")
-		.attr("fill-opacity", 0.2);
 
 	var endpoint = svg.append("circle")
 		.attr("r", 4)
 		.attr("cx", xScale(0))
 		.attr("cy", yScale(incidentWave(0,t) + reflectedWave(0, t)))
-		.attr("fill", "red");
+		.attr("fill", "#ff2800");
 
 	function loop() {
 		requestAnimationFrame(loop);

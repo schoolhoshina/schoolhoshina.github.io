@@ -11,11 +11,11 @@
 
 	.axis path {
 		fill: none;
-		stroke: green;
+		stroke: #35a16b;
 	}
 
 	.axis line {
-		stroke: green;
+		stroke: #35a16b;
 	}
 
 	.axis text {
@@ -23,7 +23,7 @@
 	}
 
 	footer {
-		border-top: solid 1px grey;
+		border-top: solid 1px #7f878f;
 		margin-top: 10px;
 		padding: 5px;
 	}
@@ -126,7 +126,7 @@
 		.attr("y1", yScale(0))
 		.attr("x2", function(d) { return xScale(d.x); } )
 		.attr("y2", function(d) { return yScale(d.y); })
-		.attr("stroke", "grey");
+		.attr("stroke", "#7f878f");
 	var r = (xScale(pointWidth) - xScale(0))*0.4;
 	var yPoint = svg.selectAll(".point")
 		.data(data)
@@ -136,7 +136,7 @@
 		.attr("r", r)
 		.attr("cx", function(d) { return xScale(d.x); })
 		.attr("cy", function(d) { return yScale(d.y); })
-		.attr("fill", "steelblue");
+		.attr("fill", "#0041ff");
 
 	function loop() {
 		requestAnimationFrame(loop);
