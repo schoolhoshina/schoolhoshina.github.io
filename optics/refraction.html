@@ -10,14 +10,14 @@
 	}
 
 	footer {
-		border-top: solid 1px grey;
+		border-top: solid 1px #7f878f;
 		margin-top: 10px;
 		padding: 5px;
 	}
 
 	.axis path {
 		fill: none;
-		stroke: grey;
+		stroke: #7f878f;
 	}
 
 	.tick {
@@ -72,6 +72,13 @@
 		.domain(yDomain)
 		.range([h, 0]);
 
+	var lensR = xScale(70) - xScale(0);
+	svg.append("path")
+		.attr("class", "lens")
+		.attr("d", "M "+lensR+" 0 A "+lensR+" "+lensR+" 0 1 1 "+(-lensR)+" 0 L 0 0 Z")
+		.attr("transform", "translate("+xScale(0)+","+yScale(0)+")")
+		.style("fill", "#66ccff");
+
 	var xAxis = d3.svg.axis()
 		.scale(xScale)
 		.orient("bottom");
@@ -87,13 +94,6 @@
 		.attr("transform", "translate("+xScale(0)+",0)")
 		.call(yAxis);
 	
-	var lensR = xScale(70) - xScale(0);
-	svg.append("path")
-		.attr("class", "lens")
-		.attr("d", "M "+lensR+" 0 A "+lensR+" "+lensR+" 0 1 1 "+(-lensR)+" 0 L 0 0 Z")
-		.attr("transform", "translate("+xScale(0)+","+yScale(0)+")")
-		.style("fill", "steelblue")
-		.style("fill-opacity", 0.5);
 
 	calc();
 
@@ -117,11 +117,11 @@
 
 		data = [];
 
-		data.push({label: "入射角", arg: arg, stroke: "orange", arcFill: "red"});
-		data.push({label: "反射角", arg: principalArg(Math.PI - arg), stroke: "orange", arcFill: "green"});
+		data.push({label: "入射角", arg: arg, stroke: "#ff9900", arcFill: "#ff2800"});
+		data.push({label: "反射角", arg: principalArg(Math.PI - arg), stroke: "#ff9900", arcFill: "#faf500"});
 
 		if (refractedArg != null) {
-			data.push({label: "屈折角", arg: principalArg(refractedArg), stroke: "orange", arcFill: "yellow"});
+			data.push({label: "屈折角", arg: principalArg(refractedArg), stroke: "#ff9900", arcFill: "#663300"});
 		}
 	}
 
@@ -131,7 +131,7 @@
 		.attr("height", 20)
 		.attr("x", 0)
 		.attr("y", -10)
-		.attr("fill", "grey")
+		.attr("fill", "#7f878f")
 		.attr(
 			"transform",
 			"translate("+xScale(outerR * Math.cos(arg))+" "+yScale(outerR * Math.sin(arg))+") rotate("+(-arg*180/Math.PI)+")"
@@ -191,8 +191,7 @@
 				);
 			})
 			.attr("stroke", "none")
-			.attr("fill", function(d) { return d.arcFill; })
-			.attr("fill-opacity", 0.5);
+			.attr("fill", function(d) { return d.arcFill; });
 
 		svg.selectAll(".arc")
 			.data(data)
