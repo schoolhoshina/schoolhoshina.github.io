@@ -1,0 +1,297 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>凸レンズの性質</title>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<style>
+	input[type="text"] {
+		width: 2.5em;
+	}
+
+	.axis path {
+		fill: none;
+		stroke: #7f878f;
+	}
+
+	.tick {
+		display: none;
+	}
+
+	.axis text {
+		display: none;
+	}
+
+	footer {
+		font-size: small;
+		border-top: solid 1px grey;
+		margin-top: 10px;
+	}
+</style>
+</head>
+<body>
+<svg>
+	<defs>
+		<polygon points="0,0 0,5 5,2.5" id="m_tmpl2"/>
+		<marker id="m_o1" markerWidth="4" markerHeight="4" viewBox="0 0 5 5" refX="5" refY="2.5" orient="auto">
+            <use xlink:href="#m_tmpl2" fill="#0041ff"/>
+        </marker>
+    </defs>
+</svg>
+<footer>
+<!-- ライセンス表示 -->
+<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。<br></p>
+<!-- Author -->
+<p>
+塾ほしな 〒358-0003 埼玉県入間市豊岡4丁目7-20 電話: 04-2962-7010<br>
+ホームページ: <a href="http://schoolhoshina.tumblr.com/">http://schoolhoshina.tumblr.com/</a><br>
+E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
+</p>
+</footer>
+<script>
+(function() {
+
+	var w = 960, h = 540, aspect = w/h;
+
+	var yMax = 100;
+	var xMax = yMax*aspect;
+	var xDomain = [-xMax, xMax], yDomain = [-yMax, yMax];
+
+	var f = 50;
+	var obj = [-100, 30]
+	var im = [ 0, 0 ];
+
+	var ray = [
+		{y1: 0, y2: 0, stroke: "#663300"},
+		{y1: 0, y2: 0, stroke: "#9a0079"},
+		{y1: 0, y2: 0, stroke: "#ff9900"}
+	];
+
+	var label = [
+		{x: 0, y:0, text: "物体", dy: 20},
+		{x: 0, y:0, text: "実像", dy: 20},
+		{x: 0, y:0, text: "焦点", dy: 20},
+		{x: 0, y:0, text: "焦点", dy: 20}
+	];
+
+	var svg = d3.select("svg")
+		.style({width: w, height: h});
+
+	var xScale = d3.scale.linear()
+		.domain(xDomain)
+		.range([0, w]);
+
+	var yScale = d3.scale.linear()
+		.domain(yDomain)
+		.range([h, 0]);
+
+	// Lens
+	(function () {
+		var r = xScale(200) - xScale(0);
+		var x0 = xScale(0);
+		var y1 = yScale(50);
+		var y2 = yScale(-50)
+		svg.append("path")
+			.attr(
+				"d",
+				"M " + x0 + " "  + y1 + " " +
+				"A " + r + " " + r + " 0 0 0 " + x0 + " " + y2 +
+				"A " + r + " " + r + " 0 0 0 " + x0 + " " + y1
+			)
+			.attr("fill", "#b4ebfa");
+	})();
+
+	// Axis
+	var xAxis = d3.svg.axis()
+		.scale(xScale)
+		.orient("bottom");
+
+	var yAxis = d3.svg.axis()
+		.scale(yScale)
+		.orient("left");
+
+	svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0,"+yScale(0)+")")
+		.call(xAxis);
+
+	svg.append("g")
+		.attr("class", "y axis")
+		.attr("transform", "translate("+xScale(0)+",0)")
+		.call(yAxis);
+
+	// Light Ray
+	svg.selectAll(".ray")
+		.data(ray)
+		.enter()
+		.append("path")
+		.attr("class", "ray")
+		.attr("fill", "none")
+		.attr("stroke", function(d) { return d.stroke; });
+
+	svg.selectAll(".virtualRay")
+		.data(ray)
+		.enter()
+		.append("path")
+		.attr("class", "virtualRay")
+		.attr("fill", "none")
+		.attr("stroke-dasharray", "5, 5")
+		.attr("stroke", function(d) { return d.stroke; });
+
+	// Arrow
+	var dragArrow = d3.behavior.drag()
+		.on("drag", function() {
+			obj[0] = xScale.invert( d3.mouse(this)[0] );
+			update();
+		});
+
+	svg.selectAll(".arrow")
+		.data([obj, im])
+		.enter()
+		.append("line")
+		.attr("class", "arrow")
+		.attr("y1", yScale(0))
+		.attr("stroke", "#0041ff")
+		.attr("stroke-width", 5)
+		.attr("marker-end", "url(#m_o1)")
+		.call(dragArrow);
+
+	// Focus
+	var dragFocus = d3.behavior.drag()
+		.on("drag", function() {
+			var m = d3.mouse(this);
+			f = Math.abs( xScale.invert( m[0] ) );
+			update();
+		});
+	svg.selectAll(".focus")
+		.data([-1, 1])
+		.enter()
+		.append("circle")
+		.attr("class", "focus")
+		.attr("r", 5)
+		.attr("cy", yScale(0))
+		.attr("cx", function(d) { return xScale(d*f); })
+		.attr("fill", "#ff2800")
+		.call(dragFocus);
+
+	// Image
+	svg.append("circle")
+		.attr("class", "image")
+		.attr("r", 5)
+		.attr("fill", "#000000");
+
+	// Object
+	var dragObj = d3.behavior.drag()
+		.on("drag", function() {
+			obj[0] = xScale.invert( d3.mouse(this)[0] );
+			obj[1] = yScale.invert( d3.mouse(this)[1] );
+			update();
+		});
+
+	svg.append("circle")
+		.attr("class", "obj")
+		.attr("r", 5)
+		.attr("fill", "#ff2800")
+		.call(dragObj);
+
+	// Label
+	svg.selectAll(".label")
+		.data(label)
+		.enter()
+		.append("text")
+		.attr("class", "label")
+		.attr("x", function(d) { return xScale(d.x); })
+		.attr("y", function(d) { return yScale(d.y); })
+		.attr("text-anchor", "middle")
+
+	update();
+
+	function update() {
+
+		if ( obj[0] == 0 ) return;
+
+		var a = Math.abs(obj[0]);
+		var b = 1/( 1/f - 1/a );
+
+		var x2 = obj[0] > 0 ? -xMax : xMax;
+		im[0]  = obj[0] > 0 ? -b : b;
+		im[1] = - obj[1] * b / a;
+
+		label[1].text = a > f ? "実像" : "虚像";
+
+		ray[0].x1 = 0;
+		ray[0].y1 = obj[1];
+		ray[0].y2 = ray[0].y1 - obj[1]/(obj[0] > 0 ? -f : f) * x2;
+
+		ray[1].x1 = 0;
+		ray[1].y1 = 0;
+		ray[1].y2 = obj[1] / obj[0] * x2;
+
+		ray[2].x1 = 0;
+		ray[2].y1 = im[1];
+		ray[2].y2 = im[1];
+
+		label[0].x = obj[0];
+		label[1].x = im[0];
+		label[2].x = -f;
+		label[3].x = f;
+		label[0].dy = obj[1] >= 0 ? 20 : -6;
+		label[1].dy = im[1] >= 0 ? 20 : -6;
+
+		svg.selectAll(".focus")
+			.attr("cx", function(d) { return xScale(d*f); });
+
+		svg.select(".obj")
+			.attr("cx", xScale(obj[0]))
+			.attr("cy", yScale(obj[1]));
+
+		if ( a == f ) return;
+
+		svg.selectAll(".label")
+			.data(label)
+			.attr("x", function(d) { return xScale(d.x); })
+			.attr("y", function(d) { return yScale(d.y); })
+			.attr("dy", function(d) { return d.dy; })
+			.text(function(d) { return d.text; });
+
+		svg.selectAll(".ray")
+			.data(ray)
+			.attr(
+				"d",
+				function (d) {
+					return ( "M "+ xScale(obj[0]) + " " + yScale(obj[1]) +
+					" L " + xScale(d.x1) + " " + yScale(d.y1) +
+					" L " + xScale(x2) + " " + yScale(d.y2) );
+				}
+			);
+
+		svg.select(".image")
+			.attr("cx", xScale(im[0]))
+			.attr("cy", yScale(im[1]));
+
+		svg.selectAll(".arrow")
+			.data([obj, im])
+			.attr("x1", function(d) { return xScale(d[0]); })
+			.attr("x2", function(d) { return xScale(d[0]); })
+			.attr("y2", function(d) { return yScale(d[1]); })
+			.attr("stroke-dasharray", function(d, i) {
+				return a >= f || i == 0 ? "5,0" : "5,5" ;
+			});
+
+		svg.selectAll(".virtualRay")
+			.data(ray)
+			.attr(
+				"d",
+				function (d) {
+					var str = "M "+ xScale(im[0]) + " " + yScale(im[1]);
+					if (a < f) str += " L " + xScale(0) + " " + yScale(d.y1);
+					return str;
+				}
+			);
+
+	} /* end of update */
+
+})();
+</script>
+</body>
+</html>
