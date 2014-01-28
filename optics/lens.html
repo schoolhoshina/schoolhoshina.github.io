@@ -165,6 +165,7 @@ E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
 		.append("path")
 		.attr("class", "ray")
 		.attr("fill", "none")
+		.attr("stroke-width", 1.5)
 		.attr("stroke", function(d) { return d.stroke; });
 
 	svg.selectAll(".virtualRay")
@@ -173,6 +174,7 @@ E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
 		.append("path")
 		.attr("class", "virtualRay")
 		.attr("fill", "none")
+		.attr("stroke-width", 1.5)
 		.attr("stroke-dasharray", "5, 5")
 		.attr("stroke", function(d) { return d.stroke; });
 
