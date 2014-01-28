@@ -30,14 +30,21 @@
 </style>
 </head>
 <body>
-<svg>
-	<defs>
-		<polygon points="0,0 0,5 5,2.5" id="m_tmpl2"/>
-		<marker id="m_o1" markerWidth="4" markerHeight="4" viewBox="0 0 5 5" refX="5" refY="2.5" orient="auto">
-            <use xlink:href="#m_tmpl2" fill="#0041ff"/>
-        </marker>
-    </defs>
-</svg>
+<header>
+	<nav>
+		<a href="http://schoolhoshina.github.io/index.html">塾ほしなのWeb教材</a>
+	</nav>
+</header>
+<section>
+	<h1>凸レンズの性質</h1>
+	<svg>
+		<defs>
+			<marker id="triangle" markerWidth="4" markerHeight="4" viewBox="0 0 5 5" refX="5" refY="2.5" orient="auto">
+				<polygon points="0,0 0,5 5,2.5" id="m_tmpl2" fill="#0041ff"/>
+			</marker>
+		</defs>
+	</svg>
+</section>
 <footer>
 <!-- ライセンス表示 -->
 <p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。<br></p>
@@ -153,7 +160,7 @@ E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
 		.attr("y1", yScale(0))
 		.attr("stroke", "#0041ff")
 		.attr("stroke-width", 5)
-		.attr("marker-end", "url(#m_o1)")
+		.attr("marker-end", "url(#triangle)")
 		.call(dragArrow);
 
 	// Focus
