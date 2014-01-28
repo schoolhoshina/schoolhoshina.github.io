@@ -1,0 +1,237 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>力の分解 - 斜面上の物体</title>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<style>
+	input[type="text"] {
+		width: 2.5em;
+	}
+
+	.axis path {
+		fill: none;
+		stroke: #7f878f;
+	}
+
+	.tick {
+		display: none;
+	}
+
+	.axis text {
+		display: none;
+	}
+
+	footer {
+		font-size: small;
+		border-top: solid 1px grey;
+		margin-top: 10px;
+	}
+</style>
+</head>
+<body>
+<svg>
+	<defs>
+		<marker id="triangle2"
+		viewBox="0 0 10 10" refX="0" refY="5" 
+		markerUnits="strokeWidth"
+		markerWidth="4" markerHeight="3"
+		orient="auto">
+			<path d="M 0 0 L 10 5 L 0 10 z" fill="#ff2800"/>
+		</marker>
+		<marker id="triangle1"
+		viewBox="0 0 10 10" refX="0" refY="5" 
+		markerUnits="strokeWidth"
+		markerWidth="4" markerHeight="3"
+		orient="auto">
+			<path d="M 0 0 L 10 5 L 0 10 z" fill="#35a16b"/>
+		</marker>
+		<marker id="triangle0"
+		viewBox="0 0 10 10" refX="0" refY="5" 
+		markerUnits="strokeWidth"
+		markerWidth="4" markerHeight="3"
+		orient="auto">
+			<path d="M 0 0 L 10 5 L 0 10 z" fill="#0041ff"/>
+		</marker>
+	</defs>
+</svg>
+<footer>
+<!-- ライセンス表示 -->
+<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。<br></p>
+<!-- Author -->
+<p>
+塾ほしな 〒358-0003 埼玉県入間市豊岡4丁目7-20 電話: 04-2962-7010<br>
+ホームページ: <a href="http://schoolhoshina.tumblr.com/">http://schoolhoshina.tumblr.com/</a><br>
+E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
+</p>
+</footer>
+<script>
+(function() {
+
+	var w = 960, h = 540;
+	var margin = { left: 80, right: 10, top: 20, bottom: 150 };
+	var aspect = ( w - margin.left - margin.right ) / ( h - margin.top - margin.bottom );
+	var yMax = 100;
+	var xMax = yMax*aspect;
+	var xDomain = [0, xMax], yDomain = [0, yMax];
+
+	var x0 = 10, y0 = 0, x2;
+	var angle = Math.PI / 6;
+	var slopeTop= [0, 0], slopeLength = 150;
+	var objWidth = 20, objHeight = 10, objR = slopeLength * 0.6;
+	var objBottom, objCenter;
+	var weight = 150, weightArrow, weightParallel, weightNormal;
+	var arrowhead = 15;
+
+	var drag = d3.behavior.drag()
+		.on("drag", getAngle);
+
+	var svg = d3.select("svg")
+		.style({width: w, height: h})
+		.on("click", getAngle)
+		.call(drag);
+
+	function getAngle() {
+		var x = Math.max( xScale.invert( d3.mouse(this)[0] ), x0 );
+		var y = Math.max( yScale.invert( d3.mouse(this)[1] ), y0 );
+		angle = Math.atan2(y-y0, x-x0);
+		update();
+	}
+
+	var xScale = d3.scale.linear()
+		.domain(xDomain)
+		.range([margin.left, w-margin.right]);
+
+	var yScale = d3.scale.linear()
+		.domain(yDomain)
+		.range([h-margin.bottom, margin.top]);
+
+	var slope = svg.append("path")
+		.attr("fill", "#c8c8cb")
+		.attr("stroke", "black")
+		.attr("stroke-width", 3);
+
+	var slopeArc = svg.append("path")
+		.attr("class", "arc")
+		.attr("fill", "skyblue")
+		.attr("fill-opacity", 0.8)
+		.attr("stroke", "black")
+		.attr("stroke-width", 2)
+		.attr("transform", "translate("+xScale(x0)+" "+yScale(y0)+")");
+
+	var obj = svg.append("g");
+
+	obj.append("rect")
+		.attr("x", -(xScale(objWidth) - xScale(0)) * 0.5)
+		.attr("y", -(xScale(objHeight) - xScale(0)) * 0.5)
+		.attr("width", xScale(objWidth) - xScale(0))
+		.attr("height", xScale(objHeight) - xScale(0))
+		.attr("fill", "#ffd1d1")
+		.attr("stroke", "black")
+		.attr("stroke-width", 3);
+
+	obj.append("path")
+		.attr("class", "arc")
+		.attr("fill", "skyblue")
+		.attr("fill-opacity", 0.8)
+		.attr("stroke", "black")
+		.attr("stroke-width", 2);
+
+	var arrow = ["#0041ff", "#35a16b", "#ff2800"];
+	obj.selectAll(".arrow")
+		.data(arrow)
+		.enter()
+		.append("line")
+		.attr("class", "arrow")
+		.attr("stroke", function(d) { return d; })
+		.attr("stroke-width", 5)
+		.attr("marker-end", function(d, i) {
+			return "url(#triangle"+i+")";
+		});
+
+	var guide = obj.append("path")
+		.attr("fill", "none")
+		.attr("stroke", "black")
+		.attr("stroke-width", 2)
+		.attr("stroke-dasharray", "5,5");
+
+	obj.append("circle")
+		.attr("class", "point")
+		.attr("r", 5)
+		.attr("fill", "#ff2800");
+
+	update();
+
+	function update() {
+
+		var s = Math.sin(angle);
+		var c = Math.cos(angle);
+
+		var x1 = x0+slopeLength*c;
+		var y1 = y0+slopeLength*s;
+		slope.attr(
+			"d",
+			"M " + xScale(x0) + " " + yScale(y0) +
+			" L " + xScale(x1) + " " + yScale(y1) +
+			" L " + xScale(x1+20) + " " + yScale(y1) +
+			" L " + xScale(x1+20) + " " + yScale(y0) + " Z"
+		);
+
+		arrow = [
+			{ l: weight*s-arrowhead, rotate: 90-angle/Math.PI*180 },
+			{ l: weight*c-arrowhead, rotate: -angle/Math.PI*180 },
+			{ l: weight-arrowhead, rotate: 0 },
+		];
+
+		obj.selectAll(".arrow")
+			.data(arrow)
+			.attr("transform", function(d) { return "rotate("+d.rotate+")"; })
+			.attr("x1", 0)
+			.attr("x2", 0)
+			.attr("y1", 0)
+			.attr("y2", function(d) { return Math.max(d.l, 0); });
+
+		var objX = x0 + objR*c - s*objHeight*0.5;
+		var objY = y0 + objR*s + c*objHeight*0.5;
+
+		obj.attr(
+			"transform",
+			"translate("+xScale(objX)+", "+yScale(objY)+")"
+		);
+
+		obj.select("rect")
+			.attr("transform", " rotate(" + (-angle/Math.PI*180) + ")");
+
+		slopeArc.attr("d", arc({r: 50, angles: [0, angle], flags: "0 0 0"}))
+
+		obj.select(".arc")
+			.attr("d", arc({
+				r: 30,
+				angles: [Math.PI*1.5, Math.PI*1.5+angle],
+				flags: "0 0 0"
+			}));
+
+		guide.attr(
+			"d",
+			"M "+(weight*c*s) + " " + (weight*c*c)+
+			" L "+0+" "+weight+
+			" L "+(-weight*s*c) + " " +(weight*s*s)
+		);
+
+	} /* end of update */
+
+	function arc(d) {
+		var x1 = d.r * Math.cos(d.angles[0]);
+		var y1 = -d.r * Math.sin(d.angles[0]);
+		var x2 = d.r * Math.cos(d.angles[1]);
+		var y2 = -d.r * Math.sin(d.angles[1]);
+		return (
+			"M 0 0 L " + x1 + " " + y1 + " A " + d.r +" "+ d.r +
+			" " + d.flags + " " + x2 + " " + y2 + " Z"
+		);
+	}
+
+})();
+</script>
+</body>
+</html>
