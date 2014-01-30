@@ -5,23 +5,6 @@
 <title>2力の合成</title>
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <style>
-	input[type="text"] {
-		width: 2.5em;
-	}
-
-	.axis path {
-		fill: none;
-		stroke: #7f878f;
-	}
-
-	.tick {
-		display: none;
-	}
-
-	.axis text {
-		display: none;
-	}
-
 	footer {
 		font-size: small;
 		border-top: solid 1px grey;
@@ -37,8 +20,7 @@
 </header>
 <section>
 	<h1>2力の合成</h1>
-	<svg>
-	</svg>
+	<svg></svg>
 </section>
 <footer>
 <!-- ライセンス表示 -->
@@ -166,38 +148,38 @@ E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
 
 	} // end of update //
 
-function arrowPath(x1, y1, x2, y2, lineWidth, headWidth, headHeight) {
+	function arrowPath(x1, y1, x2, y2, lineWidth, headWidth, headHeight) {
 
-	lineWidth = typeof lineWidth !== "undefined" ? lineWidth : 1;
-	headWidth = typeof headWidth !== "undefined" ? headWidth : 10;
-	headHeight = typeof headHeight !== "undefined" ? headHeight : 15;
+		lineWidth = typeof lineWidth !== "undefined" ? lineWidth : 1;
+		headWidth = typeof headWidth !== "undefined" ? headWidth : 10;
+		headHeight = typeof headHeight !== "undefined" ? headHeight : 15;
 
-	var length = Math.sqrt( Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2) );
-	var rotate = Math.atan2(y2-y1, x2-x1);
+		var length = Math.sqrt( Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2) );
+		var rotate = Math.atan2(y2-y1, x2-x1);
 
-	var x3 = length - headHeight;
-	var y3 = headWidth*0.5;
-	var x4 = Math.min(0, x3);
-	var y4 = lineWidth*0.5;
+		var x3 = length - headHeight;
+		var y3 = headWidth*0.5;
+		var x4 = Math.min(0, x3);
+		var y4 = lineWidth*0.5;
 
-	var x = [x3, length, x3, x3, x4, x4, x3];
-	var y = [y3, 0, -y3, -y4, -y4, y4, y4];
+		var x = [x3, length, x3, x3, x4, x4, x3];
+		var y = [y3, 0, -y3, -y4, -y4, y4, y4];
 
-	var x_ = [], y_ = [];
-	var c = Math.cos(rotate), s = Math.sin(rotate);
-	for (var i = 0; i < 7; i++) {
-		x_.push( x1 + c * x[i] - s * y[i] );
-		y_.push( y1 + s * x[i] + c * y[i] );
-	}
+		var x_ = [], y_ = [];
+		var c = Math.cos(rotate), s = Math.sin(rotate);
+		for (var i = 0; i < 7; i++) {
+			x_.push( x1 + c * x[i] - s * y[i] );
+			y_.push( y1 + s * x[i] + c * y[i] );
+		}
 
-	var d = "";
-	for (var i = 0; i < 7; i++) {
-		d += (i==0 ? "M" : "L") + x_[i] + " " + y_[i];
-	}
+		var d = "";
+		for (var i = 0; i < 7; i++) {
+			d += (i==0 ? "M" : "L") + x_[i] + " " + y_[i];
+		}
 		d += "Z";
 
-	return d;
-}
+		return d;
+	}
 
 })();
 </script>
