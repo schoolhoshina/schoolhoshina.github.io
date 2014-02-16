@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>ベクトルの外積</title>
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="../js/three.min.js"></script>
+<script src="../js/three.min.js"></script><!-- r66 -->
 <script src="../js/Detector.js"></script>
 <script src="../js/OrbitControls.js"></script><!-- マウスホイールでページをスクロールしないように修正されたもの https://github.com/jasongrout/three.js/commit/afaff8207b42bf475acb383a171fbeec1e5b0a77 -->
 <script type="text/x-mathjax-config">
@@ -81,8 +81,6 @@ var threeWidth = 600, threeHeight = 400;
 var scene, renderer, camera, controls;
 
 var vectors = [], dirs = [], arrows = [], sprites = [];
-var maxVector = new THREE.Vector3(3, 3, 3);
-var minVector = new THREE.Vector3(-3, -3, -3);
 var parallelogram;
 
 initSVG();
@@ -374,6 +372,8 @@ function initVectors() {
 
 function update() { // データ計算&描画
 
+	vectors[0].clampScalar( -3, 3 ); // Aの可動範囲を制限
+	vectors[1].clampScalar( -3, 3 ); // Bの可動範囲を制限
 	vectors[2].crossVectors( vectors[0], vectors[1] ); // 外積計算
 
 	for (var i = 0; i < vectors.length; i ++) {
@@ -382,10 +382,6 @@ function update() { // データ計算&描画
 		var arrow = arrows[i];
 		var dir = dirs[i];
 		var sprite = sprites[i];
-
-		if ( i < 2 ) {
-			vector.clamp( minVector, maxVector ); // A, Bの可動範囲を制限
-		}
 
 		// 3D矢印の再設定
 		arrow.setLength(vector.length());
