@@ -1,0 +1,556 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>ローレンツ力</title>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="../js/three.min.js"></script>
+<script src="../js/Detector.js"></script>
+<script src="../js/OrbitControls.js"></script><!-- マウスホイールでページをスクロールしないように修正されたもの https://github.com/jasongrout/three.js/commit/afaff8207b42bf475acb383a171fbeec1e5b0a77 -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ["\\(","\\)"]] } });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML">
+</script>
+<meta http-equiv="X-UA-Compatible" CONTENT="IE=EmulateIE7" />
+<style>
+.caption {
+	font-size: small;
+}
+
+.panel {
+	float: left;
+	margin: 5px;
+}
+
+input[type="text"] {
+	width: 2em;
+}
+
+svg {
+	border: solid 1px grey;
+}
+
+footer {
+	clear: both;
+	font-size: small;
+	border-top: solid 1px grey;
+	margin: 5px 0 0 0;
+}
+</style>
+</head>
+<body>
+<header>
+	<nav>
+		<a href="http://schoolhoshina.github.io/index.html">塾ほしなのWeb教材</a>
+	</nav>
+</header>
+<section>
+<h1>ローレンツ力</h1>
+<p>
+フレミングの左手の法則で知られる, 磁場中を運動する荷電粒子に働くローレンツ力$\vec{F} = q \vec{v} \times \vec{B}$を表示します。
+平面に射影された矢印をドラッグして荷電粒子の速度$\vec{v}$, 磁束密度$\vec{B}$を操作できます。
+</p>
+<div>
+電荷$q$
+<input type="range" id="chargeSlider" value="1" min="-2", max="2" step="0.5">
+<span id="charge">+1.0</span>
+</div>
+<div class="panel"><div id="three"></div></div>
+<div class="panel"><span class="caption">xy平面</span><br><svg id="xy"></svg></div>
+<div class="panel"><span class="caption">yz平面</span><br><svg id="yz"></svg></div>
+<div class="panel"><span class="caption">zx平面</span><br><svg id="zx"></svg></div>
+</section>
+<footer>
+<!-- ライセンス表示 -->
+<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。<br></p>
+<p>
+塾ほしな 〒358-0003 埼玉県入間市豊岡4丁目7-20 電話: 04-2962-7010<br>
+ホームページ: <a href="http://schoolhoshina.tumblr.com/">http://schoolhoshina.tumblr.com/</a><br>
+E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
+</p>
+</footer>
+
+<script>
+(function() {
+
+var svgWidth = 180, svgHeight = 180;
+var svgAspect = svgWidth / svgHeight;
+var yDomain = [ -3, 3 ];
+var xDomain = [ yDomain[0] * svgAspect, yDomain[1] * svgAspect ];
+var xScale, yScale;
+
+var threeWidth = 600, threeHeight = 400;
+var scene, renderer, camera, controls;
+
+var vectors = [], dirs = [], arrows = [], sprites = [];
+var q = 1;
+var particle;
+
+initInput();
+initSVG();
+initThree();
+initVectors();
+animate();
+
+function initInput() {
+
+	document.getElementById("chargeSlider").onchange = function () {
+		q = Number(this.value);
+		document.getElementById("charge").innerHTML = q > 0 ? "+" + q.toFixed(1) : q.toFixed(1);
+		update();
+	}
+
+}
+
+function initSVG () {
+
+	// svg領域のサイズ
+	d3.selectAll("svg")
+		.style("width", svgWidth + "px")
+		.style("height", svgHeight + "px");
+
+	// スケール
+	xScale = d3.scale.linear()
+		.domain(xDomain)
+		.range([ 0, svgWidth ]);
+
+	yScale = d3.scale.linear()
+		.domain(yDomain)
+		.range([ svgHeight, 0 ]);
+
+	// 軸
+	var xAxis = d3.svg.axis()
+		.scale(xScale)
+		.tickValues([-3,-2,-1,0,1,2,3])
+		.orient("bottom");
+
+	var yAxis = d3.svg.axis()
+		.scale(yScale)
+		.tickValues([-3,-2,-1,0,1,2,3])
+		.orient("right");
+
+	d3.selectAll("svg")
+		.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + yScale(0) + ")")
+		.call(xAxis);
+
+	d3.selectAll("svg")
+		.append("g")
+		.attr("class", "y axis")
+		.attr("transform", "translate("+xScale(0)+",0)")
+		.call(yAxis);
+
+	d3.selectAll(".axis path")
+		.attr("fill", "none")
+		.attr("stroke", "grey");
+
+	d3.selectAll(".axis text")
+		.attr("fill", "none");
+
+	d3.selectAll(".axis line")
+		.attr("stroke", "grey");
+
+	// 軸ラベル
+	d3.select("#xy")
+		.append("text")
+		.text("x")
+		.attr("x", xScale(3))
+		.attr("y", yScale(0));
+
+	d3.select("#xy")
+		.append("text")
+		.text("y")
+		.attr("x", xScale(0))
+		.attr("y", yScale(3))
+		.attr("dy", 10);
+
+	d3.select("#yz")
+		.append("text")
+		.text("y")
+		.attr("x", xScale(3))
+		.attr("y", yScale(0))
+		.attr("dy", -4);
+
+	d3.select("#yz")
+		.append("text")
+		.text("z")
+		.attr("x", xScale(0))
+		.attr("y", yScale(3))
+		.attr("dy", 10);
+
+	d3.select("#zx")
+		.append("text")
+		.text("z")
+		.attr("x", xScale(3))
+		.attr("y", yScale(0));
+
+	d3.select("#zx")
+		.append("text")
+		.text("x")
+		.attr("x", xScale(0))
+		.attr("y", yScale(3))
+		.attr("dy", 10);
+
+	d3.selectAll("svg")
+		.selectAll("text")
+		.attr("text-anchor", "end")
+		.attr("font-size", 20)
+		.attr("font-weight", "bold")
+		.attr("font-family", "serif");
+
+}
+
+function initThree() {
+
+	// シーン
+	scene = new THREE.Scene();
+
+	// レンダラー
+	if ( Detector.webgl ) {
+		renderer = new THREE.WebGLRenderer( {antialias:true} );
+	} else {
+		renderer = new THREE.CanvasRenderer();
+	}
+	renderer.setSize( threeWidth, threeHeight );
+	renderer.setClearColor( 0x000000 );
+	three.appendChild( renderer.domElement );
+
+	// カメラ
+	camera = new THREE.PerspectiveCamera( 45, threeWidth / threeHeight, 0.1, 1000 );
+	camera.position.set( 5, 5, 2.5 );
+	camera.up.set( 0, 0, 1 );
+	camera.lookAt(new THREE.Vector3(0,0,0));
+
+	// カメラコントロール
+	controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+	// ライト
+	var light = new THREE.DirectionalLight(0xffffff, 1);
+	light.position.set( 0, 0.5, 1 );
+	scene.add( light );
+
+	var ambient = new THREE.AmbientLight(0x444444, 1);
+	scene.add( ambient );
+
+	// グリッド
+	var gridXY = new THREE.GridHelper( 3, 1 );
+	gridXY.rotateX( Math.PI * 0.5 );
+	gridXY.position.z = -3;
+	scene.add( gridXY );
+
+	var gridYZ = new THREE.GridHelper( 3, 1 );
+	gridYZ.rotateZ( Math.PI * 0.5 );
+	gridYZ.position.x = -3;
+	scene.add( gridYZ );
+
+	var gridZX = new THREE.GridHelper( 3, 1 );
+	gridZX.position.y = -3;
+	scene.add( gridZX );
+
+	// X, Y, Z軸ラベル
+	for ( var i = 0; i < 3; i ++ ) {
+
+		var text = ["x", "y", "z"][i];
+		var material = createTextSpriteMaterial( text, "#ffffff" );
+		var sprite = new THREE.Sprite(material);
+
+		sprite.position.x = i==0 ? 3 : -3;
+		sprite.position.y = i==1 ? 3 : -3;
+		sprite.position.z = i==2 ? 3 : -3;
+
+		sprite.scale.set( 10, 10, 1 );
+
+		scene.add(sprite);
+
+	}
+
+	// 粒子
+	particle = new THREE.Mesh(
+		new THREE.SphereGeometry( 0.1 ),
+		new THREE.MeshPhongMaterial( { color: 0x888888 } )
+	);
+	scene.add( particle );
+
+}
+
+function initVectors() {
+
+	// 原点
+	var origin = new THREE.Vector3( 0, 0, 0 );
+
+	// ベクトル A, B, A x B
+	vectors = [
+		new THREE.Vector3( 1, 0, 0 ),
+		new THREE.Vector3( 0, 1, 0 ),
+		new THREE.Vector3()
+	];
+
+	vectors[0].draggable = true;
+	vectors[1].draggable = true;
+	vectors[2].draggable = false;
+
+	vectors[0].fill = "#0041ff";
+	vectors[1].fill = "#35a16b";
+	vectors[2].fill = "#ff2800";
+
+	vectors[0].name = "速度v";
+	vectors[1].name = "磁束密度B";
+	vectors[2].name = "力F";
+
+	for (var i = 0; i < vectors.length; i ++) {
+
+		vector = vectors[i];
+
+		// 矢印
+		var dir = new THREE.Vector3(); // 方向ベクトル
+		dir.copy(vector);
+		dir.normalize();
+		dirs.push(dir);
+		var hex = parseInt( vector.fill.substr(1), 16 ); // 色->整数値
+		var arrow = new THREE.ArrowHelper(dir, origin, vector.length(), hex);
+		arrows.push(arrow);
+		scene.add(arrow);
+
+		// ベクトルのラベル
+		var material = createTextSpriteMaterial( vector.name, "#ffffff" );
+		var sprite = new THREE.Sprite( material );
+		sprites.push( sprite );
+		sprite.scale.set( 2, 2, 1 );
+		scene.add( sprite );
+
+	}
+
+	// 平面射影
+
+	// ベクトルのラベル
+	d3.selectAll("svg").selectAll(".label")
+		.data(vectors)
+		.enter()
+		.append("text")
+		.attr("class", "label")
+		.text(function(d) { return d.name; })
+		.attr("fill", "black");
+
+	// 矢印
+	d3.selectAll("svg").selectAll(".arrow")
+		.data(vectors)
+		.enter()
+		.append("path")
+		.attr("class", "arrow")
+		.attr("r", 5)
+		.attr("fill", function (d) { return d.fill; });
+
+	var dragXY = d3.behavior.drag()
+		.on("drag", function() {
+			if ( d3.select(this).data()[0].draggable ) {
+				d3.select(this).data()[0].x = xScale.invert(d3.mouse(this)[0]);
+				d3.select(this).data()[0].y = yScale.invert(d3.mouse(this)[1]);
+				update();
+			}
+		});
+
+	d3.select("#xy").selectAll(".arrow")
+		.call(dragXY);
+
+	var dragYZ = d3.behavior.drag()
+		.on("drag", function() {
+			if ( d3.select(this).data()[0].draggable ) {
+				d3.select(this).data()[0].y = xScale.invert(d3.mouse(this)[0]);
+				d3.select(this).data()[0].z = yScale.invert(d3.mouse(this)[1]);
+				update();
+			}
+		});
+
+	d3.select("#yz").selectAll(".arrow")
+		.call(dragYZ);
+
+	var dragZX = d3.behavior.drag()
+		.on("drag", function() {
+			if ( d3.select(this).data()[0].draggable ) {
+				d3.select(this).data()[0].z = xScale.invert(d3.mouse(this)[0]);
+				d3.select(this).data()[0].x = yScale.invert(d3.mouse(this)[1]);
+				update();
+			}
+		});
+
+	d3.select("#zx").selectAll(".arrow")
+		.call(dragZX);
+
+	update();
+
+}
+
+function update() { // データ計算&描画
+
+	vectors[0].clampScalar( -3, 3 ); // vの可動範囲を制限
+	vectors[1].clampScalar( -3, 3 ); // Bの可動範囲を制限
+
+	vectors[2].crossVectors( vectors[0], vectors[1] );
+	vectors[2].multiplyScalar( q );
+
+
+	for (var i = 0; i < vectors.length; i ++) {
+
+		var vector = vectors[i];
+		var arrow = arrows[i];
+		var dir = dirs[i];
+		var sprite = sprites[i];
+
+		if ( i < 2 ) {
+		}
+
+		// 3D矢印の再設定
+		var length = vector.length();
+		if ( length == 0 ) {
+
+			arrow.cone.visible = false;
+			arrow.line.visible = false;
+
+		} else {
+
+			arrow.setLength( length, length * 0.2, length * 0.1 );
+
+			dir.copy(vector);
+			dir.normalize();
+			arrow.setDirection(dir);
+
+			arrow.cone.visible = true;
+			arrow.line.visible = true;
+
+		}
+
+		// ラベル位置の再設定
+		sprite.position.copy( vector );
+
+	}
+
+	// 射影矢印の再描画
+	d3.select("#xy").selectAll(".arrow")
+		.attr("d", function(d) {
+			return arrowPath(
+				xScale(0), yScale(0),
+				xScale(d.x), yScale(d.y),
+				2, 10, 15
+			);
+		});
+
+	d3.select("#yz").selectAll(".arrow")
+		.attr("d", function(d) {
+			return arrowPath(
+				xScale(0), yScale(0),
+				xScale(d.y), yScale(d.z),
+				2, 10, 15
+			);
+		});
+
+	d3.select("#zx").selectAll(".arrow")
+		.attr("d", function(d) {
+			return arrowPath(
+				xScale(0), yScale(0),
+				xScale(d.z), yScale(d.x),
+				2, 10, 15
+			);
+		});
+
+	// 射影ベクトルのラベル位置設定
+	d3.select("#xy").selectAll(".label")
+		.attr("x", function(d) { return xScale(d.x)	})
+		.attr("y", function(d) { return yScale(d.y)	});
+
+	d3.select("#yz").selectAll(".label")
+		.attr("x", function(d) { return xScale(d.y)	})
+		.attr("y", function(d) { return yScale(d.z)	});
+
+	d3.select("#zx").selectAll(".label")
+		.attr("x", function(d) { return xScale(d.z)	})
+		.attr("y", function(d) { return yScale(d.x)	});
+
+}
+
+// レンダリング
+function render() {
+
+	renderer.render( scene, camera );
+
+}
+
+// アニメーション・ループ
+function animate() {
+
+	requestAnimationFrame(animate);
+	controls.update();
+	render();
+
+}
+
+// 文字ラベル生成関数
+function createTextSpriteMaterial ( text, fill ) {
+
+	fill = fill !== undefined ? fill : "#000000";
+
+	var canvas = document.createElement("canvas");
+	var size = 256;
+	canvas.width = size;
+	canvas.height = size;
+
+	var context = canvas.getContext("2d");
+	context.fillStyle = fill;
+	context.textAlign = "center";
+	context.font = "24px Arial";
+	context.fillText( text, size / 2, size / 2 );
+
+	var texture = new THREE.Texture( canvas );
+	texture.needsUpdate = true;
+
+	var material = new THREE.SpriteMaterial({
+		map: texture,
+		transparent: false,
+		useScreenCoordinates: false,
+		color: 0xffffff
+	});
+
+	return material;
+
+}
+
+// SVG矢印Path生成関数
+function arrowPath(x1, y1, x2, y2, lineWidth, headWidth, headHeight) {
+
+	lineWidth = typeof lineWidth !== "undefined" ? lineWidth : 1;
+	headWidth = typeof headWidth !== "undefined" ? headWidth : 10;
+	headHeight = typeof headHeight !== "undefined" ? headHeight : 15;
+
+	var length = Math.sqrt( Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2) );
+	var rotate = Math.atan2(y2-y1, x2-x1);
+
+	var x3 = length - headHeight;
+	var y3 = headWidth*0.5;
+	var x4 = Math.min(0, x3);
+	var y4 = lineWidth*0.5;
+
+	var x = [x3, length, x3, x3, x4, x4, x3];
+	var y = [y3, 0, -y3, -y4, -y4, y4, y4];
+
+	var x_ = [], y_ = [];
+	var c = Math.cos(rotate), s = Math.sin(rotate);
+	for (var i = 0; i < 7; i++) {
+		x_.push( x1 + c * x[i] - s * y[i] );
+		y_.push( y1 + s * x[i] + c * y[i] );
+	}
+
+	var d = "";
+	for (var i = 0; i < 7; i++) {
+		d += (i==0 ? "M" : "L") + x_[i] + " " + y_[i];
+	}
+		d += "Z";
+
+	return d;
+}
+
+})();
+</script>
+</body>
+</html>
