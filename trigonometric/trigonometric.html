@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="utf-8">
+	<title>三角関数</title>
+    <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.99.1/jsxgraphcore.js"></script>
+	<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+	<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<style>
+#x { width: 4em; }
+.jxgbox {
+	width: 400px;
+	height: 400px;
+	margin: 5px 0;
+}
+.panel {
+	float: left;
+	margin: 5px 10px;
+}
+#value {
+	width: 7em;
+}
+footer {
+	clear: both;
+	font-size: small;
+	border-top: solid 1px grey;
+	margin-top: 10px;
+}
+</style>
+</head>
+<body>
+<header>
+	<nav>
+		<a href="http://schoolhoshina.github.io/index.html">塾ほしなのWeb教材</a>
+	</nav>
+</header>
+<section>
+<h1>三角関数</h1>
+<div class="panel" id="value">
+<table>
+<tr><td>$x =$</td><td><input id="x" type="number" step=0.01 value="0"></td></tr>
+<tr><td>$\sin x =$</td><td><span id="sin"></span></td></tr>
+<tr><td>$\cos x =$</td><td><span id="cos"></span></td></tr>
+<tr><td>$\tan x =$</td><td><span id="tan"></span></td></tr>
+</table>
+</div>
+<div class="panel">
+<div id="box1" class="jxgbox"></div>
+黒の縦線を左右にドラッグできます
+</div>
+<div class="panel">
+<div id="box2" class="jxgbox"></div>
+円周上の黒丸をドラッグできます。
+</div>
+</section>
+<footer>
+<!-- ライセンス表示 -->
+<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。<br></p>
+<!-- Author -->
+<p>
+塾ほしな 〒358-0003 埼玉県入間市豊岡4丁目7-20 電話: 04-2962-7010<br>
+ホームページ: <a href="http://schoolhoshina.tumblr.com/">http://schoolhoshina.tumblr.com/</a><br>
+E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
+</p>
+</footer>
+<script>
+(function() {
+	
+	var PI2 = Math.PI * 2.0,
+		x = 0,
+		bSize = Math.PI,
+		pallet = ["#ff2800", "#9a0079", "#35a16b"];
+
+	////////////////
+	// 入力&数値表示 
+	
+	// DOM要素
+	var xInput = document.getElementById("x"),
+		sinOutput = document.getElementById("sin"),
+		cosOutput = document.getElementById("cos"),
+		tanOutput = document.getElementById("tan");
+	
+	// changeイベント
+	xInput.onchange = function() {
+		x = +xInput.value;
+		updateB1();
+		updateB2();
+		updateValue();
+	};
+	
+	// アップデート関数
+	function updateValue() {
+		xInput.value = x;
+		sinOutput.innerHTML = Math.sin( x ).toPrecision(5);
+		cosOutput.innerHTML = Math.cos( x ).toPrecision(5);
+		tanOutput.innerHTML = Math.tan( x ).toPrecision(5);
+	}
+
+	//////////
+	// グラフ
+	
+	// ボード
+	var b1 = JXG.JSXGraph.initBoard(
+		'box1', {boundingbox: [-bSize, bSize, bSize, -bSize],
+				 axis: true, keepaspectratio: true}
+	);
+	
+	// グラフ y = tan x
+	var gt = b1.create("functiongraph", [Math.tan, -PI2, PI2],
+					   {strokeColor: pallet[2], strokeWidth: 2});
+	
+	// グラフ y = cos x
+	var gc = b1.create("functiongraph", [Math.cos, -PI2, PI2],
+					   {strokeColor: pallet[1], strokeWidth: 2});
+	
+	// グラフ y = sin x
+	var gs = b1.create("functiongraph", [Math.sin, -PI2, PI2],
+					   {strokeColor: pallet[0], strokeWidth: 2});
+	
+	// 直線 y = 0
+	var l0 = b1.create("line", [0, 0, 1], {visible: false, fixed: true});
+	
+	// 直線 y = x
+	var l1 = b1.create(
+		"line", [0, -1, 1],
+		{strokeColor: "#000000", strokeWidth: 1, fixed: true, dash: 2}
+	);
+	
+	// 直線x=x
+	var lx = b1.create(
+		"line",
+		[0, -1, 0],
+		{strokeColor: "#000000", highlightStrokeColor: "#cccccc",
+		 strokeWidth: 2}
+	);
+	
+	// 点(x, tan x)
+	var pt1 = b1.create(
+		"intersection", [lx, gt],
+		{withLabel: false, fillColor: "#ffffff", strokeColor: pallet[2], size: 3}
+	);
+	
+	// 点(x, cos x)
+	var pc1 = b1.create(
+		"intersection", [lx, gc],
+		{withLabel: false, fillColor: "#ffffff", strokeColor: pallet[1], size: 3}
+	);
+	
+	// 点(x, sin x)
+	var ps1 = b1.create(
+		"intersection", [lx, gs],
+		{withLabel: false, fillColor: "#ffffff", strokeColor: pallet[0], size: 3}
+	);
+	
+	// 点(x, 0)
+	var px1 = b1.create(
+		"intersection",
+		[lx, l0],
+		{name: "x", visible: false}
+	);
+	
+	// dragイベント
+	lx.on("drag", function() {
+		x = px1.X();
+		updateB2();
+		updateValue();
+	});
+	
+	// アップデート関数
+	function updateB1() {
+		lx.point1.setPosition(JXG.COORDS_BY_USER, [x, 0]);
+		lx.point2.setPosition(JXG.COORDS_BY_USER, [x, 1]);
+		b1.fullUpdate();	
+	}
+
+	//////////
+	// 単位円
+	
+	// ボード
+	var b2 = JXG.JSXGraph.initBoard(
+		'box2', {boundingbox: [-bSize, bSize, bSize, -bSize],
+				 axis: true, keepaspectratio: true}
+	);
+	
+	// 原点
+	var origin = b2.create("point", [0,0], {fixed: true, visible: false});
+	
+	// 点(1,0)
+	var p0 = b2.create("point", [1,0], {fixed: true, visible: false});
+	
+	// 直線x=1
+	var l1 = b2.create(
+		"line", [1, -1, 0],
+		{fixed: true, strokeColor: "#cccccc", strokeWidth: 1}
+	);
+	
+	// 単位円
+	var circle = b2.create("circle", [origin, 1],
+						   {strokeColor: "#cccccc", strokeWidth: 1});
+	
+	// グライダー: 点(cos x, sin x)
+	var pr = b2.create(
+		"glider", [1, 0, circle],
+		{withLabel: false, strokeColor: "#000000", fillColor: "#ffffff", size: 4}
+	);
+	
+	// 線分OC
+	var loc = b2.create(
+		"segment", [origin, pr],
+		{strokeColor: "#000000", strokeWidth: 1, dash: 2}
+	);
+	
+	// 円弧
+	var arc = b2.create(
+		"minorarc", [origin, p0, pr],
+		{strokeColor: "#000000", strokeWidth: 2});
+	
+	// 点(1, tan x)
+	var pt2 = b2.create(
+		"point", [1, function() { if(pr.X() !== 0){ return pr.Y() / pr.X(); } } ],
+		{withLabel: false, strokeColor: pallet[2], fillColor: "#ffffff", size: 3}
+	);
+	
+	// 点(cos x, 0)
+	var pc2 = b2.create(
+		"point", [function() { return pr.X(); }, 0],
+		{withLabel: false, strokeColor: pallet[1], fillColor: "#ffffff", size: 3}
+	);
+	
+	// 点(0, sin x)
+	var ps2 = b2.create(
+		"point", [0, function() { return pr.Y(); }],
+		{withLabel: false, strokeColor: pallet[0], fillColor: "#ffffff", size: 3}
+	);
+	
+	// 線分
+	b2.create("segment", [p0, pt2],	{strokeColor: pallet[2]});
+	b2.create("segment", [origin, pc2], {strokeColor: pallet[1]});
+	b2.create("segment", [origin, ps2], {strokeColor: pallet[0]});
+	b2.create("segment", [origin, pt2],	 {strokeColor: "#000000", strokeWidth: 1, dash: 2});
+	b2.create("segment", [pr, pc2], {strokeColor: "#000000", strokeWidth: 1, dash: 2});
+	b2.create("segment", [pr, ps2], {strokeColor: "#000000", strokeWidth: 1, dash: 2});
+	
+	// dragイベント
+	pr.on("drag", function() {
+		x = Math.atan2(pr.Y(), pr.X());
+		updateValue();
+		updateB1();
+	});
+	
+	// アップデート関数
+	function updateB2() {
+		pr.setGliderPosition(x);
+		b2.fullUpdate();
+	}
+	
+	//////////
+	// 初期化
+	
+	updateValue();
+	
+})();
+</script>
+</body>
+</html>
