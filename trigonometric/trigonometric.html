@@ -167,7 +167,10 @@ E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
 		x = px1.X();
 		updateB2();
 		updateValue();
-		lx.point2.setPosition(JXG.COORDS_BY_USER, [lx.point1.X(), lx.point2.Y()]);
+		// 回転を禁止
+		lx.point2.setPosition(
+			JXG.COORDS_BY_USER, [lx.point1.X(), lx.point2.Y()]
+		);
 	});
 	
 	// アップデート関数
