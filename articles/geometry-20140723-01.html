@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>平面幾何の問題</title>
+<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.99.1/jsxgraphcore.js"></script>
+<style>
+#box {
+	width: 400px;
+	height: 400px;
+	background-color: #fefaf6;
+}
+</style>
+</head>
+<body>
+<div id="box"></div>
+<script>
+(function() {
+	var brd = JXG.JSXGraph.initBoard("box", {
+		boundingBox: [-2, 20, 30, -12], // ltrb
+		keepaspectratio: true,
+		axis: true
+	});
+	
+	brd.create("point", [0, 0],
+			   {name: "B", fixed: true, fillColor: "black", strokeColor: "none"});
+	var circleBA = brd.create(
+		"circle", ["B", 10], {visible: false}
+	);
+	var pointA = brd.create("glider", [1, 2, circleBA], {name: "A"});
+	var segmentAB = brd.create("segment", ["A", "B"]);
+	var point1_0 = brd.create(
+		"point", [1, 0],
+		{fixed: true, name: "P(1,0)", visible: false}
+	);
+	var lineBD = brd.create("bisector", [point1_0, "B", "A"], {visible: false});
+	
+	// y-y0 = a(x-x0) => (-y0+ax0)-ax+y=0
+	var lineAC = brd.create(
+		"line",
+		[function(){
+			return [-pointA.Y() - lineBD.getSlope()*pointA.X(), lineBD.getSlope(), 1];
+		}],
+		{visible: false}
+	);
+	
+	var lineBC = brd.create("line", ["B", "P(1,0)"], {visible: false});
+	
+	var pointC = brd.create("intersection", [lineAC, lineBC], {name: "C", fillColor: "black", strokeColor: "none"});
+	var pointD = brd.create("intersection", [lineAC, lineBD], {name: "D", fillColor: "black", strokeColor: "none"});
+	
+	var pointE = brd.create("perpendicularpoint", [pointA, lineBC], {name: "E", fillColor: "black", strokeColor: "none"});
+	var pointF = brd.create("perpendicularpoint", [pointD, lineBC], {name: "F", fillColor: "black", strokeColor: "none"});
+	
+	brd.create("segment", ["A", "E"]);
+	brd.create("segment", ["A", "C"]);
+	brd.create("segment", ["B", "C"]);
+	brd.create("segment", ["B", "D"]);
+	brd.create("segment", ["D", "F"]);
+	
+})();
+</script>
+</body>
+</html>

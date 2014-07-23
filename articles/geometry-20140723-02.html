@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>平面幾何の問題</title>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+});
+</script>
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.99.1/jsxgraphcore.js"></script>
+<style>
+h3 {
+	background-color: #b4ebfa;
+}
+h4 {
+	background-color: #cbf266;
+}
+.problem {
+	border: solid 2px grey;
+	border-radius: 10px;
+	padding: 10px;
+	width: 90%;
+	margin: 0 auto;
+}
+#box {
+	width: 400px;
+	height: 400px;
+	margin: 10px;
+	border: solid 1px;
+	border-color: grey;
+	border-radius: 10px;
+	background-color: #fefaf6;
+}
+</style>
+</head>
+<body>
+<h2>三角形の傍心</h2>
+<h3>問題</h3>
+<div class="problem">
+<!-- TeXマクロ -->
+$
+	\def\ABC{\triangle\mathrm{ABC}}
+	\def\A{\mathrm{A}}
+	\def\B{\mathrm{B}}
+	\def\C{\mathrm{C}}
+	\def\I{\mathrm{I}}
+	\def\M{\mathrm{M}}
+	\def\O{\mathrm{O}}
+	\def\P{\mathrm{P}}
+$
+三角形$\ABC$の内心を$\I$とする.
+辺$\A\B$の延長線と辺$\B\C$との間に挟まれた角の二等分線を引き,
+直線$\A\I$との交点を$\I_1$とする.
+このとき三角形$\ABC$の外接円は$\I\I_1$の中点を通ることを示せ.
+</div>
+<div id="box"></div>
+<h3>証明の方針</h3>
+<p>
+4点$\B$, $\C$, $\I$, $\I_1$が同一円周上にあることを示す.
+$\angle \I\B\I_1$は直角であるから, 線分$\I\I_1$はこの円の直径である.
+外接円と線分$\I\I_1$との交点$\P$が$\B\C$の垂直二等分線上にあることが言えれば,
+点$\P$がこの円の中心であることから$\I\I_1$の中点であることが示される.
+</p>
+<h3>証明</h3>
+<h4>STEP1: $\angle \I\B\I_1 = 90^\circ$</h4>
+<p>
+$\angle \I\B\C$は三角形$\ABC$の頂点$\B$の内角の$1/2$倍,
+$\angle \I_1\B\C$は三角形$\ABC$の頂点$\B$の外角の$1/2$倍だから,
+それらの和は$180^\circ$の$1/2$倍, すなわち$90^\circ$である.
+</p>
+<h4>STEP2: 4点$\B$, $\C$, $\I$, $\I_1$が同一円周上にあること</h4>
+<p>
+点$\I$は三角形$\ABC$の内心だから, 3つの頂点の角の二等分線上にある.
+$$ \angle \I\A\B = \angle \I\A\C = \alpha, $$
+$$ \angle \I\B\C = \angle \I\B\A = \beta, $$
+$$ \angle \I\C\A = \angle \I\C\B = \gamma $$
+とおくと, 三角形$\ABC$の内角の和より
+$$ \alpha + \beta + \gamma = 90^\circ $$
+が成り立つ.
+$\angle \B\I\P$は三角形$\triangle \A\B\I$の頂点$\I$の外角だから
+$$ \angle \B\I\P = \alpha + \beta. $$
+よって
+$$ \angle \B\I_1\I
+	= 180^\circ - 90^\circ - \angle \B\I\I_1
+	= 90^\circ - (\alpha + \beta)
+	= \gamma $$
+となる.
+ゆえに,
+$$ \angle \B\I_1\I = \gamma = \angle \B\C\I $$
+である.
+3点$\B$, $\C$, $\I$を通る円を考えると, $\angle \B\I_1\I$は弧$\B\I$の円周角に等しい.
+したがって, 点$\I_1$はこの円周上の点である.
+</p>
+
+<h4>STEP3: $\triangle \B\O\M \equiv \triangle \C\O\M$</h4>
+<p>
+三角形$\ABC$の外心を点$\O$とし, 2直線$\O\P$, $\B\C$の交点を$\M$とする.
+
+点$\P$は角$\triangle \B\A\C$の二等分線上にあるから
+$$ \angle \B\A\P = \angle \C\A\P = \alpha $$
+である.
+円弧$\B\P$と$\C\P$に注目すると, これらの円周角が等しいことから, 中心角も等しい.
+$$ \angle \B\O\P = \angle \C\O\P = 2\alpha $$
+よって,
+$$ \angle \B\O\M = \angle \C\O\M $$
+が成り立つ(1).
+
+また, 点$\B$と点$\C$が$\O$を中心とする外接円上にあることから
+$$ \O\B = \O\C $$
+も成り立つ(2).
+
+(1)(2)より, 2辺とその間の角が等しいことから$\triangle \B\O\M$と
+$\triangle \C\O\M$とは合同である.
+ゆえに,
+$$ \angle \O\M\B = \angle \O\M\C $$
+である. $\B$, $\M$, $\C$は1直線上に並んでいるから
+$$ \angle \O\M\B + \angle \O\M\C = 180^\circ. $$
+したがって
+$$ \angle \O\M\B = \angle \O\M\C = 90^\circ $$
+が言える.
+
+こうして直線$\O\M$は線分$\B\C$の垂直二等分線であることが分かった.
+
+<h4>STEP4: $\P$が$\I\I_1$の中点であること</h4>
+一方$\angle \I\B\I_1 = \angle \I\C\I_1 = 90^\circ$より,
+点$\B$, $\C$は線分$\I\I_1$を直径とする円周上の点である.
+この円の直径$\I\I_1$とこの円周上の2点を結んだ線分$\B\C$の垂直二等分線$\O\M$との交点$\P$はこの円の中心である.
+ゆえに, 点$\P$は線分$\I\I_1$の中点である. [証明終]
+</p>
+<script>
+(function() {
+	JXG.Options.text.useMathJax = true;
+	
+	var brd = JXG.JSXGraph.initBoard("box", {
+		boundingBox: [-5, 5, 5, -5], // ltrb
+		keepaspectratio: true
+	});
+	
+	var movablepointstyle = {fillColor: "pink", strokeColor: "red"};
+	var fixedpointstyle = {fillColor: "black", strokeColor: "none", size: 2};
+	var circlestyle = {fillColor: "none", strokeColor: "grey", strokeWidth: 1};
+	var radiusstyle = {fillColor: "none", strokeColor: "darkgreen", strokeWidth: 1};
+	var raystyle = {fillColor: "none", strokeColor: "darkblue", strokeWidth: 1};
+	var otherstyle = {fillColor: "none", strokeColor: "purple", strokeWidth: 1};
+	
+	brd.create("point", [-4, 4], {name: "A"})
+		.setLabelText("$\\\\A$")
+		.setAttribute(movablepointstyle);
+	brd.create("point", [-2, 0], {name: "B"})
+		.setLabelText("$\\\\B$")
+		.setAttribute(movablepointstyle);
+	brd.create("point", [3, 0], {name: "C"})
+		.setLabelText("$\\\\C$")
+		.setAttribute(movablepointstyle);
+	
+	var lineAB = brd.create("segment", ["A", "B"], {straightFirst: false})
+		.setAttribute(raystyle);
+	brd.create("segment", ["B", "C"], {name: "BC"})
+		.setAttribute(otherstyle);
+	brd.create("segment", ["C", "A"])
+		.setAttribute(raystyle);
+	
+	brd.create("incenter", ["A", "B", "C"], {name: "I"})
+		.setLabelText("$\\\\I$")
+		.setAttribute(fixedpointstyle);
+	
+	var lineAI = brd.create("line", ["A", "I"], {straightFirst: false})
+		.setAttribute(raystyle);
+	
+	var lineBI = brd.create("segment", ["B", "I"])
+		.setAttribute(otherstyle);
+	var lineBI1 = brd.create("perpendicular", ["B", lineBI], {visible: false});
+	brd.create("intersection", [lineBI1, lineAI], {name: "I1"})
+		.setLabelText("$\\\\I$_1")
+		.setAttribute(fixedpointstyle);
+	
+	brd.create("segment", ["B", "I1"])
+		.setAttribute(otherstyle);
+
+	brd.create("segment", ["C", "I"])
+		.setAttribute(otherstyle);
+	brd.create("segment", ["C", "I1"])
+		.setAttribute(otherstyle);
+
+	var circumCircleABC = brd.create("circumcircle", ["A", "B", "C"])
+		.setAttribute(circlestyle);
+	
+	brd.create("intersection", [lineAI, circumCircleABC], {name: "P"})
+		.setLabelText("$\\\\P$")
+		.setAttribute(fixedpointstyle);
+	brd.create("circumcenter", ["A", "B", "C"], {name: "O"})
+		.setLabelText("$\\\\O$")
+		.setAttribute(fixedpointstyle);
+	
+	brd.create("circumcircle", ["B", "I", "I1"])
+		.setAttribute(circlestyle);
+	
+	brd.create("segment", ["O", "B"])
+		.setAttribute(radiusstyle);
+	brd.create("segment", ["O", "C"])
+		.setAttribute(radiusstyle);
+	brd.create("segment", ["O", "P"], {name: "OP"})
+		.setAttribute(radiusstyle);
+
+	brd.create("intersection", ["OP", "BC"], {name: "M"})
+		.setLabelText("$\\\\M$")
+		.setAttribute(fixedpointstyle);
+	
+	brd.create("angle", ["I", "A", "C"], {name: "$\\alpha$"});
+	brd.create("angle", ["I", "B", "A"], {name: "$\\beta$"});
+	brd.create("angle", ["I", "C", "B"], {name: "$\\gamma$"});
+	brd.create("angle", ["B", "I", "P"], {name: "$\\alpha + \\beta$"});
+	brd.create("angle", ["I", "I1", "B"], {name: "$\\gamma$"});
+	brd.create("angle", ["P", "O", "C"], {name: "$2\\alpha$"});
+})();
+</script>
+</body>
+</html>

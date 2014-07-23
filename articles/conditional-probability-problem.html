@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>条件付き確率の問題</title>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+});
+</script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { extensions: ["enclose.js"] }
+});
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<style>
+.problem {
+	border: solid 2px grey;
+	border-radius: 10px;
+	padding: 10px;
+	margin: 0 3em;
+}
+.fig {
+	text-align: center;
+}
+.caption {
+	font-size: 0.9em;
+}
+.fig svg {
+	display: block;
+	background: #eee;
+	padding: 10px;
+	margin: 5px auto;
+}
+</style>
+</head>
+<body>
+<h1>条件付き確率の問題</h1>
+<p>
+次のような問題を考える:
+<div class="problem">
+箱Aには白い球が4つと赤い球が5つ入っている.
+箱Bには白い球が3つと赤い球が5つ, 青い球が4つ入っている.
+初めに箱を等しい確率で選び, その後で選んだ箱の中から球を取り出す.
+取り出した球が白色だったとき, それ球が箱Aから選ばれた球である確率を求めよ.
+</div>
+</p>
+<p>
+<!-- TeXマクロ -->
+$
+	\def\cw#1{\enclose{circle}{#1}}
+	\def\cr#1{\enclose{circle}[mathcolor="red"]{#1}}
+	\def\cb#1{\enclose{circle}[mathcolor="blue"]{#1}}
+$
+すべての球に番号を付け, 番号$x$の球を選ぶ事象を$\cw{x}$で表すことにする.
+また, 箱Aを選ぶ事象を$A$, 箱Bを選ぶ事象を$B$と表すと,
+$$
+A = \cw{1} \cup \cw{2} \cup \cw{3} \cup \cw{4}
+	\cup \cr{5} \cup \cr{6} \cup \cr{7} \cup \cr{8} \cup \cr{9},
+$$
+$$
+B = \cw{10} \cup \cw{11} \cup \cw{12}
+	\cup \cr{13} \cup \cr{14} \cup \cr{15} \cup \cr{16} \cup \cr{17}
+	\cup \cb{18} \cup \cb{19} \cup \cb{20} \cup \cb{21}
+$$
+のように書ける.
+</p>
+<p>
+また, 異なる2つの番号$x \neq y$に関して事象$\cw{x}$と事象$\cw{y}$は互いに排反である:
+$$ x \neq y \quad\mbox{ならば}\quad \cw{x} \cap \cw{y} = \emptyset. $$
+</p>
+<p>
+箱Aを選ぶ確率と箱Bを選ぶ確率は
+$$ P(A) = P(B) = \frac{1}{2} $$
+である.
+</p>
+<p>
+$$ P(A) = P(\cw{1})+P(\cw{2})+P(\cw{3})+P(\cw{4})+P(\cr{5})+P(\cr{6})+P(\cr{7})+P(\cr{8})+P(\cr{9}) $$
+だから,
+$$ P(\cw{1}) = P(\cw{2}) = \cdots = P(\cr{9}) = \frac{1}{2}\times\frac{1}{9}. $$
+一方
+$$ P(B) = P(\cw{10})+P(\cw{11})+\cdots+P(\cb{21}) $$
+だから
+$$ P(\cw{10})=P(\cw{11})=\cdots=P(\cb{21}) = \frac{1}{2}\times\frac{1}{12} $$
+になる.
+</p>
+<p>ここで<em>事象$\cw{1}$の確率と事象$\cw{10}$の確率は等しくない</em>ことに注意.</p>
+<p>
+白い球を取り出す事象を$W$と表すことにすると,
+箱Aから白い球を取り出す事象は
+$$ A \cap W = \cw{1} \cup \cw{2} \cup \cw{3} \cup \cw{4}, $$
+箱Bから白い球を取り出す事象は
+$$ B \cap W = \cw{10} \cup \cw{11} \cup \cw{12} $$
+と書ける.
+両者を合わせて白い球を取り出す事象は
+$$ W = \cw{1} \cup \cw{2} \cup \cw{3} \cup \cw{4} \cup \cw{10} \cup \cw{11} \cup \cw{12} $$
+である.
+</p>
+<p>
+事象$\cw{1}$, $\cw{2}$, $\cw{3}$, $\cw{4}$の確率と
+事象$\cw{10}$, $\cw{11}$, $\cw{12}$の確率が違うことに注意しないと,
+次のような間違いをしてしまうかもしれない:
+<blockquote>
+	「白い球を取り出したということは,7通りの事象
+	$\cw{1}$, $\cw{2}$, $\cw{3}$, $\cw{4}$, $\cw{10}$, $\cw{11}$, $\cw{12}$
+	のどれかが起こった.
+	そのうち箱Aから球を取り出すという事象は$\cw{1}$, $\cw{2}$, $\cw{3}$, $\cw{4}$の4通りである.
+	だから白い球を取り出したとき, それが箱Aから取り出した球である確率は$\frac{4}{7}$である.
+	」
+</blockquote>
+しかし, このやり方では正しい確率は求められない.
+</p>
+<p>
+各々の事象の確率を面積で表すようにしたのが図1である.
+</p>
+<div class="fig">
+	<svg id="fig1"></svg>
+	<span class="caption">図1</span>
+</div>
+<p>
+問題の条件付き確率を求めるには白の球を取り出す事象をその確率に沿った正しい比で比較しなければならない.
+図2に白い球を取り出す事象を並べて表した.
+</p>
+<div class="fig">
+	<svg id="fig2"></svg>
+	<span class="caption">図2</span>
+</div>
+<p>
+球の色が白だったとき, それが箱Aから取り出された確率は,
+図2で全体の長方形に占める$A \cap W$の長方形の割合で表される.
+つまり
+$$ P_W(A) = \frac{P(A \cap W)}{P(W)}$$
+で計算できる.
+この問題の場合,
+$$
+P_W(A)
+= \frac{P(\cw{1})+P(\cw{2})+P(\cw{3})+P(\cw{4})}
+	{P(\cw{1})+P(\cw{2})+P(\cw{3})+P(\cw{4})+P(\cw{10})+P(\cw{11})+P(\cw{12})}
+$$
+だから, これを計算すると
+$$ \begin{aligned}
+P_W(A)
+&= \frac{\frac{1}{18} \times 4}
+	{\frac{1}{18} \times 4 + \frac{1}{24} \times 3} \\
+&= \frac{\frac{4}{18}}
+	{\frac{4}{18} + \frac{1}{8}} \\
+&= \frac{\frac{4}{18} \times 18}
+	{\left( \frac{4}{18} + \frac{1}{8} \right) \times 18}\\
+&= \frac{4}{4 + \frac{9}{4}}\\
+&= \frac{4 \times 4}{\left( 4 + \frac{9}{4} \right)  \times 4}\\
+&= \frac{16}{16 + 9} \\
+&= \frac{16}{25}
+\end{aligned}
+$$
+となる.
+</p>
+<script>
+(function() {
+	var w = 480, h = 120;
+	var fig1 = d3.select("#fig1")
+		.style({width: w, height: h});
+	var xScale = d3.scale.linear()
+		.range([0, w])
+		.domain([0, 1]);
+	var yScale = d3.scale.linear()
+		.range([h, 0])
+		.domain([0, 1]);
+	var event = [
+		{id: 1, box: "A", color: "white"},
+		{id: 2, box: "A", color: "white"},
+		{id: 3, box: "A", color: "white"},
+		{id: 4, box: "A", color: "white"},
+		{id: 5, box: "A", color: "red"},
+		{id: 6, box: "A", color: "red"},
+		{id: 7, box: "A", color: "red"},
+		{id: 8, box: "A", color: "red"},
+		{id: 9, box: "A", color: "red"},
+		{id: 10, box: "B", color: "white"},
+		{id: 11, box: "B", color: "white"},
+		{id: 12, box: "B", color: "white"},
+		{id: 13, box: "B", color: "red"},
+		{id: 14, box: "B", color: "red"},
+		{id: 15, box: "B", color: "red"},
+		{id: 16, box: "B", color: "red"},
+		{id: 17, box: "B", color: "red"},
+		{id: 18, box: "B", color: "blue"},
+		{id: 19, box: "B", color: "blue"},
+		{id: 20, box: "B", color: "blue"},
+		{id: 21, box: "B", color: "blue"}
+	];
+	
+	function boxwidth(box) {
+		switch(box) {
+			case "A":
+				return xScale(0.9/9/*TODO*/);
+			case "B":
+				return xScale(0.9/12/*TODO*/);
+		}
+	}
+	
+	function boxY(box) {/*TODO*/
+		switch(box) {
+			case "A":
+				return 0;
+			case "B":
+				return yScale(0.5);
+		}
+	}
+	
+	function boxColumn(d, i) {
+		switch(d.box) {
+			case "A":
+				return i;
+			case "B":
+				return i - 9;
+		}
+	}
+	
+	fig1.selectAll(".event")
+		.data(event)
+		.enter()
+		.append("g")
+		.attr({
+			class: "event",
+			transform: function(d, i) {
+				return "translate(" +
+					(boxwidth(d.box)*boxColumn(d, i) + xScale(0.1)) + "," +
+					boxY(d.box) + ")";
+			}
+		})
+		.append("rect")
+		.attr({
+			x: 2, y: 2,
+			width: function(d) { return boxwidth(d.box)-4; }
+		});
+	
+	var pallette = {
+		white: "#ffffff",
+		red: "#ff99a0",
+		blue: "#66ccff"
+	};
+	
+	fig1.selectAll(".event>rect")
+		.attr({
+			height: yScale(0.5) - 4,
+			fill: function(d) { return pallette[d.color]; },
+			stroke: "grey",
+			"stroke-width": 2
+		});
+	
+	fig1.append("text")
+		.attr({
+			x: xScale(0.05),
+			y: yScale(0.75)
+		})
+		.text("A");
+	
+	fig1.append("text")
+		.attr({
+			x: xScale(0.05),
+			y: yScale(0.25)
+		})
+		.text("B");
+	
+	
+	var fig2 = d3.select("#fig2")
+		.style({width: w, height: h});
+	
+	var eventWhite = event.filter(function(d) { return d.color == "white"; });
+	function boxPositionX(i) {
+		var x = 0;
+		for (var j = 0; j < i; j++) {
+			x += boxwidth(eventWhite[j].box);
+		}
+		return x + xScale(0.1);
+	}
+	
+	fig2.selectAll("event")
+		.data(eventWhite)
+		.enter()
+		.append("g")
+		.attr({
+			class: "event",
+			transform: function(d, i) {
+				return "translate(" +
+					boxPositionX(i) + "," +
+					yScale(0.75) + ")";
+			}
+		})
+		.append("rect")
+		.attr({
+			x: 2, y: 2,
+			width: function(d) { return boxwidth(d.box)-4; },
+			height: yScale(0.5) - 4,
+			fill: pallette["white"],
+			stroke: "grey",
+			"stroke-width": 2
+		});
+	
+	fig2.append("text")
+		.text("A ∩ W")
+		.attr({
+			x: boxwidth("A")*4*0.5 + xScale(0.1), /*TODO*/
+			y: yScale(0.9)
+		});
+	fig2.append("text")
+		.text("B ∩ W")
+		.attr({
+			x: boxwidth("A")*4+boxwidth("B")*3*0.5+ xScale(0.1), /*TODO*/
+			y: yScale(0.9)
+		});
+	fig2.append("rect")
+		.attr({
+			x: boxPositionX(0),
+			y: yScale(0.75),
+			width: boxwidth("A")*4,
+			height: yScale(0.5),
+			fill: "none",
+			stroke: "#000",
+			"stroke-width": 2
+		});
+	fig2.append("rect")
+		.attr({
+			x: boxPositionX(4),
+			y: yScale(0.75),
+			width: boxwidth("B")*3,
+			height: yScale(0.5),
+			fill: "none",
+			stroke: "#000",
+			"stroke-width": 2
+		});
+	
+	d3.selectAll(".event")
+		.append("text")
+		.text(function(d) { return d.id; })
+		.attr({
+			y: yScale(0.75),
+			dx: function(d) {
+				return boxwidth(d.box)*0.5;
+			}
+		});
+	
+	d3.selectAll("#fig1 text, #fig2 text")
+		.attr({
+			"text-anchor": "middle",
+			"font-size": 20,
+			dy: 5,
+			"font-weight": "bold",
+			fill: "#000000"
+		});
+	
+})();
+</script>
+</body>
+</html>

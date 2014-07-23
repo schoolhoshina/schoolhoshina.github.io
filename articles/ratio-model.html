@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="utf-8">
+	<title>割合モデル</title>
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52742687-2', 'auto');
+  ga('send', 'pageview');
+  ga('set', '&uid', {{USER_ID}}); // ログインしている user_id を使用してUser-ID を設定します。
+
+</script>
+<style>
+	#handle:hover {
+		cursor: e-resize;
+	}
+</style>
+</head>
+<body>
+<header>
+	<nav><a href="http://schoolhoshina.github.io/index.html">塾ほしなのWeb教材</a></nav>
+</header>
+<section>
+	<h1>割合モデル</h1>
+	<svg></svg>
+</section>
+<footer>
+<!-- ライセンス表示 -->
+	<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。<br></p>
+<!-- Author -->
+	<p>
+	塾ほしな 〒358-0003 埼玉県入間市豊岡4丁目7-20 電話: 04-2962-7010<br>
+	ホームページ: <a href="http://schoolhoshina.tumblr.com/">http://schoolhoshina.tumblr.com/</a><br>
+	E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
+	</p>
+</footer>
+<script>
+(function() {
+	var w = window.innerWidth, h = 300;
+	var boxW = 400, boxH = 200;
+	var boxTop = (h - boxH)/2, boxLeft = 50;
+	
+	var barMargin = 10;
+	
+	var handleW = 10;
+	
+	var x = 200, ratio = 0.5;
+	
+	var svg = d3.select("svg")
+		.style({width: w, height: h, "background-color": "#fdf8f2"});
+	
+	svg.append("rect")
+		.attr({
+			id: "box",
+			x: boxLeft,
+			y: boxTop,
+			width: boxW,
+			height: boxH,
+			stroke: "#663300",
+			"stroke-width": 3,
+			fill: "none"
+		});
+	
+	var bar = svg.append("rect")
+		.attr({
+			id: "bar",
+			x: boxLeft + barMargin,
+			y: boxTop + barMargin,
+			width: x - barMargin,
+			height: boxH - 2 * barMargin,
+			stroke: "none",
+			fill: "#cbf266"
+		});
+	
+	var drag = d3.behavior.drag()
+		.on("drag", function() {
+			var mouseX = d3.mouse(svg.node())[0]
+			x = Math.max(mouseX - boxLeft, 0);
+			d3.select(this).attr("x", boxLeft + x - handleW);
+			update();
+		});
+	
+	var handle = svg.append("rect")
+		.attr({
+			id: "handle",
+			x: boxLeft + 200 - handleW,
+			y: boxTop + barMargin,
+			width: handleW,
+			height: boxH - 2 * barMargin,
+			fill: "#35a16b"
+		})
+		.call(drag);
+	
+	var label = svg.append("text")
+		.attr("class", "label")
+		.attr("y", boxTop + 55 + 25)
+		.text("50%");
+	
+	var label2 = svg.append("text")
+		.attr("class", "label")
+		.attr("y", boxTop + boxH - 30)
+		.text("0.5倍");
+	
+	d3.selectAll(".label")
+		.attr({
+			x: boxLeft + boxW/2,
+			"font-size": 55,
+			"text-anchor": "middle",
+			fill: "#663300"
+		});
+	
+	function update() {
+		bar.attr("width", Math.max(x - barMargin, 0));
+		ratio = x / boxW;
+		label.text( (ratio*100).toFixed(0) + "%");
+		label2.text( ratio.toFixed(2) + "倍");
+	}
+})();
+</script>
+</body>
+</html>
