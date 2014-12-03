@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<!--
+このコンテンツの作者は塾ほしなです。
+各種データおよびライブラリの著作権はそれぞれの作者に帰属します。
+
+震源位置データ(data/hypo.json)は気象庁「震源データ」(http://www.data.jma.go.jp/svd/eqev/data/bulletin/hypo.html)をもとに加工して作成しました。
+海岸線データ(data/coastline.json)はNatural Earth "10m-coastline" (http://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-coastline/)をもとに加工して作成しました。
+
+使用ライブラリ
+  Three.js (http://threejs.org/)
+  D3.js (http://d3js.org/)
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>震源の3次元分布 | 塾ほしなのWeb教材</title>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.js"></script>
+<script src="../js/OrbitControls.js"></script>
+<script src="../js/Detector.js"></script>
+<style>
+    body {
+        background-color: #000000;
+        color: #eee;
+		margin: 0px;
+		overflow: hidden;
+        font-family: "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", "メイリオ", Meiryo, Verdana, sans-serif;
+	}
+	a:link {
+		color: #33ccff;
+		font-weight: bold;
+	}
+	a:visited {
+		color: #cc33ff;
+		font-weight: bold;
+	}
+    #description {
+        position: absolute;
+        top:  0px;
+        padding: 5px;
+        font-size:  12pt;
+    }
+    #data-source {
+        font-size:  10pt;
+    }
+    #legendBox {
+        position: absolute;
+        top:  0px;
+        padding:  0px;
+    }
+    #about {
+        position: absolute;
+        margin: 5px;
+        padding: 0px 5px;
+        font-size: 10pt;
+        bottom: 0px;
+        right: 0px;
+    }
+</style>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52742687-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head>
+<body>
+<div id="container"></div>
+<div id="description">
+1983年1月から2014年5月までの震源分布<br>
+<span id="data-source">(<a href="http://www.data.jma.go.jp/svd/eqev/data/bulletin/hypo.html" target="_blank">気象庁HP『震源データ』</a>をもとに作成)</span>
+</div>
+<div id="legendBox"></div>
+<div id="about"><a href="about.html">このサイトについて</a></div>
+<script>
+    (function () {
+
+        if (!Detector.webgl) Detector.addGetWebGLMessage();
+
+        // 座標系
+        var CS = {
+            // WGS84の準拠楕円体
+            referenceEllipsoid: {
+                a: 6378.137, // 赤道半径
+                invf: 298.257223563, // 扁平率の逆数
+                f: 1.0 / 298.257223563, // 扁平率
+                b: 6378.137 * (1.0 - 1.0 / 298.257223563), // 極半径
+                esq: (2.0 - 1.0 / 298.257223563) / 298.257223563 // 離心率の2乗                
+            },
+
+            // 測地系から地心直交座標への変換関数
+            // (参考) http://en.wikipedia.org/wiki/Geodetic_datum#From_geodetic_to_ECEF
+            Geodetic2ECEF: function (lon, lat, h) {
+                lon = lon || 0;
+                lat = lat || 0;
+                h = h || 0;
+                var n = this.referenceEllipsoid.a / Math.sqrt(
+                        1.0 - this.referenceEllipsoid.esq * Math.pow(Math.sin(lat), 2)
+                    );
+                var r = (n + h) * Math.cos(lat);
+                return {
+                    x: r * Math.cos(lon),
+                    y: r * Math.sin(lon),
+                    z: (n * (1 - this.referenceEllipsoid.esq) + h) * Math.sin(lat)
+                };
+            },
+
+            // 測地系座標 -> Vector3
+            Geodetic2Vector3: function (lon, lat, h) {
+                lon = lon || 0;
+                lat = lat || 0;
+                h = h || 0;
+                var coords = this.Geodetic2ECEF(lon, lat, h);
+                return new THREE.Vector3(coords.x, coords.y, coords.z);
+            }
+        };
+
+        // Three.js グローバル
+        var screen = d3.select("#container").node();
+        var scene, renderer, camera, controls;
+        // パラメータ
+        var width = window.innerWidth, height = window.innerHeight;
+        var fov = 45, aspect = width / height, near = 1, far = 100000;
+        var legendBox = { width: 90, height: 120, margin: { top: 10, right: 10} };
+
+        // 開始
+        init();
+        onWindowResize();
+        animate();
+
+        function init() {
+			
+            // シーン //
+            scene = new THREE.Scene();
+
+            // レンダラー //
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(width, height);
+            screen.appendChild(renderer.domElement);
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            // カメラ //
+            camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            camera.position.set(-8000, 8000, 6000);
+            camera.up.set(0, 0, 1);
+
+            // コントロール //
+            controls = new THREE.OrbitControls(camera);
+
+            // カメラコントロールの中心を日本に
+            controls.target.set(-3636, 3636, 3600);
+
+            // 緯線のLineを作成する関数
+            var createParallel = function (lat, startLon, endLon, segments, material) {
+                lat = lat || 0;
+                startLon = startLon || 0;
+                endLon = endLon || 2.0 * Math.PI;
+                segments = segments || 50;
+                if (typeof material === "undefined") {
+                    material = new THREE.LineBasicMaterial({ color: 0xffffff });
+                }
+
+                // Curve
+                var r = CS.Geodetic2ECEF(0, lat, 0).x; // 緯線の半径
+                var curve = new THREE.EllipseCurve(
+                        0, 0,
+                        r, r,
+                        startLon, endLon,
+                        false
+                    );
+
+                // Line
+                var path = new THREE.Path(curve.getPoints(segments));
+                var geometry = path.createPointsGeometry(segments);
+                geometry.vertices.pop(); // closed line -> open line
+                var line = new THREE.Line(geometry, material);
+
+                // 移動
+                line.position.z = CS.Geodetic2ECEF(0, lat, 0).z;
+
+                return line;
+            };
+
+            // 経線のLineを作成する関数
+            var createMeridian = function (lon, startLat, endLat, segments, material) {
+                lon = lon || 0;
+                startLat = startLat || 0;
+                endLat = endLat || 2.0 * Math.PI;
+                segments = segments || 50;
+                if (typeof material === "undefined") {
+                    material = new THREE.LineBasicMaterial({ color: 0xffffff });
+                }
+
+                // Curve
+                var ecef1 = CS.Geodetic2ECEF(0, startLat, 0);
+                var ecef2 = CS.Geodetic2ECEF(0, endLat, 0);
+                var aStartAngle = Math.atan2(ecef1.z, ecef1.x * (1 - CS.referenceEllipsoid.f));
+                var aEndAngle = Math.atan2(ecef2.z, ecef2.x * (1 - CS.referenceEllipsoid.f));
+                var curve = new THREE.EllipseCurve(
+                        0, 0,
+                        CS.referenceEllipsoid.a, CS.referenceEllipsoid.b,
+                        aStartAngle, aEndAngle,
+                        false
+                    );
+
+                // Line
+                var path = new THREE.Path(curve.getPoints(segments));
+                var geometry = path.createPointsGeometry(segments);
+                geometry.vertices.pop(); // closed line -> open line
+                var line = new THREE.Line(geometry, material);
+
+                // 回転
+                line.rotateX(Math.PI * 0.5);
+                line.rotateY(lon);
+
+                return line;
+            };
+
+            // lat = 0(赤道), lon = 90度, lon = 180度の線を描く
+            var edgelinematerial = new THREE.LineBasicMaterial({ color: 0x444444 });
+            var equator = createParallel(0, Math.PI * 0.5, Math.PI, 50, edgelinematerial);
+            scene.add(equator);
+            for (var i = 0; i <= 1; i++) {
+                var line = createMeridian(
+                        Math.PI * 0.5 + Math.PI * 0.5 * i,
+                        0, Math.PI * 0.5,
+                        50,
+                        edgelinematerial
+                    );
+                scene.add(line);
+            }
+
+            // 地球中心と端点を結ぶ線分
+            (function () {
+                var geocenter = new THREE.Vector3(0, 0, 0);
+                var northPole = CS.Geodetic2Vector3(0, Math.PI * 0.5, 0);
+                var p1 = CS.Geodetic2Vector3(Math.PI * 0.5, 0, 0);
+                var p2 = CS.Geodetic2Vector3(Math.PI, 0, 0);
+                var geometry = new THREE.Geometry();
+                geometry.vertices.push(geocenter);
+                geometry.vertices.push(northPole);
+                geometry.vertices.push(geocenter);
+                geometry.vertices.push(p1);
+                geometry.vertices.push(geocenter);
+                geometry.vertices.push(p2);
+                var line = new THREE.Line(geometry, edgelinematerial, THREE.LinePieces);
+                scene.add(line);
+            })();
+
+            // 経線: 10度刻み
+            var gridlinematerial = new THREE.LineBasicMaterial({ color: 0x444444 });
+            for (var i = 1; i <= 8; i++) {
+                var line = createParallel(
+                        Math.PI * 0.5 / 9 * i,
+                        Math.PI * 0.5, Math.PI,
+                        50,
+                        gridlinematerial
+                    );
+                scene.add(line);
+            }
+
+            // 緯線: 10度刻み
+            for (var i = 1; i <= 8; i++) {
+                var line = createMeridian(
+                        Math.PI * 0.5 + Math.PI * 0.5 / 9 * i,
+                        0, Math.PI * 0.5,
+                        50,
+                        gridlinematerial
+                    );
+                scene.add(line);
+            }
+			
+            // 座標配列からGeometryを作る関数
+            var geometryParser = function (vertices) {
+                var geometry = new THREE.Geometry();
+                var vertex;
+                var offset = 0;
+                var zLength = vertices.length;
+                while (offset < zLength) {
+                    vertex = new THREE.Vector3();
+                    vertex.x = vertices[offset++];
+                    vertex.y = vertices[offset++];
+                    vertex.z = vertices[offset++];
+
+                    geometry.vertices.push(vertex);
+
+                }
+                geometry.computeBoundingSphere();
+
+                return geometry;
+            }
+
+            // 外部データのロード: 1. 海岸線
+            var coastlineRequest = new XMLHttpRequest();
+            coastlineRequest.open("GET", "./data/coastline.json", true);
+            coastlineRequest.onload = function () {
+                var text = this.responseText;
+                var material = new THREE.LineBasicMaterial({ color: 0x888888 });
+
+                var json = JSON.parse(text);
+                var geometries = json.map(geometryParser);
+				
+                geometries.forEach(function (geometry) {
+                    var line = new THREE.Line(geometry, material);
+                    scene.add(line);
+                });
+            };
+            coastlineRequest.send(null);
+
+            // 外部データのロード: 2. 震源位置
+            // 震源位置データはすべての震源位置の座標を並べた配列.
+
+            // 色
+            var colorScale = d3.scale.ordinal()
+                .domain([3, 4, 5, 6, 7, 8, 9])
+                .range([0x0044ff, 0x00ff00, 0xffff00, 0xff8800, 0xff0000, 0xff0000, 0xff0000]);
+
+            var hypocenterRequest = new XMLHttpRequest();
+            hypocenterRequest.open("GET", "./data/hypo.json", true);
+            hypocenterRequest.onload = function () {
+                var text = this.responseText;
+                var json = JSON.parse(text);
+
+                // マグニチュードごとのループ
+                json.forEach(function (hypo) {
+                    // hypoは{ magnitude: m, vertices: [x0, y0, z0, x1, y1, z1, ...] }の形のデータ.
+                    var geometry = geometryParser(hypo.vertices);
+                    var material = new THREE.PointCloudMaterial({
+                        color: colorScale(hypo.magnitude),
+                        size: 1 + (hypo.magnitude - 3) * 4
+                    });
+                    var cloud = new THREE.PointCloud(geometry, material);
+                    scene.add(cloud);
+                });
+
+            };
+            hypocenterRequest.send(null);
+
+            // 凡例
+            var legendData = [
+                { label: "7.0 ~    ", color: "#ff0000" },
+                { label: "6.0 ~ 6.9", color: "#ff8800" },
+                { label: "5.0 ~ 5.9", color: "#ffff00" },
+                { label: "4.0 ~ 4.9", color: "#00ff00" },
+                { label: "3.0 ~ 3.9", color: "#0044ff" }
+            ];
+
+            d3.select("#legendBox")
+                .style("top", legendBox.margin.top + "px")
+                .append("svg")
+                .style({ width: legendBox.width, height: legendBox.height });
+
+            var legend = d3.select("#legendBox>svg")
+                .selectAll(".legend")
+                .data(legendData)
+                .enter()
+                .append("g")
+                .attr("class", "legend")
+                .attr("transform", function (d, i) {
+                    return "translate(0," + (i * 20 + 20) + ")";
+                });
+
+            legend.append("circle")
+                .attr("r", 5)
+                .attr("fill", function (d) { return d.color; })
+                .attr("cx", 10)
+                .attr("cy", 10);
+
+            legend.append("text")
+                .attr("class", "legend-label")
+                .text(function (d) { return d.label; })
+                .attr("x", 20)
+                .attr("y", 10)
+                .attr("dy", ".35em");
+
+            d3.select("#legendBox>svg")
+                .append("g")
+                .attr("class", "legend-label")
+                .append("text")
+                .text("Magnitude")
+                .attr("x", 20)
+                .attr("y", 10)
+                .attr("dy", "0.35em");
+
+            d3.selectAll(".legend-label")
+                .attr("font-family", "Verdana")
+                .attr("font-size", 12)
+                .attr("fill", "#ffffff");
+			
+        }
+
+        function onWindowResize() {
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            d3.select("#legendBox")
+                .style("top", legendBox.margin.top + "px")
+                .style("left", (window.innerWidth - legendBox.width - legendBox.margin.right) + "px");
+        }
+
+        // レンダリング //
+        function render() {
+            renderer.render(scene, camera);
+        }
+
+        // アニメーション・ループ //
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            render();
+        }
+
+    })();
+</script>
+</body>
+</html>

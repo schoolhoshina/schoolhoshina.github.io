@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>『震源の3次元分布』について</title>
+<style>
+    body {
+        font-family: "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", "メイリオ", Meiryo, Verdana, sans-serif;
+	}
+    footer {
+        clear: both;
+        font-size: small;
+        border-top: solid 1px grey;
+	    margin-top: 10px;
+    }
+</style>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52742687-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head>
+<body>
+<header>
+	<nav>
+		<a href="../index.html">塾ほしなのWeb教材</a>
+	</nav>
+</header>
+<section>
+<h1><a href="index.html">『震源の3次元分布』</a>について</h1>
+<p><a href="index.html"><img src="image/screenshot.png" alt="スクリーンショット" /></a></p>
+<p>
+1983年1月から2014年5月までに日本周辺で観測された地震の震源位置を3次元的に表示します。
+マウスドラッグやホイールで視点を操作することができます。
+WebGLに対応していないブラウザでは表示できません。
+</p>
+<h2>ライセンス</h2>
+<p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" rel="dct:type">作品</span> は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。
+</p>
+<p>
+ただし、震源データ、海岸線データおよびライブラリの著作権はそれぞれの作者に帰属します。これらの利用にはそれぞれのライセンスが適用されます。
+</p>
+<h2>データ出典</h2>
+<p>
+震源の情報については気象庁「震源データ」
+(<a href="http://www.data.jma.go.jp/svd/eqev/data/bulletin/hypo.html" target="_blank">http://www.data.jma.go.jp/svd/eqev/data/bulletin/hypo.html</a>)
+をもとに加工して作成したデータ(data/hypo.json)を使用しています。
+</p>
+<p>
+海岸線についてはNatural Earth "10m-coastline"
+(<a href="http://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-coastline/" target="_blank">http://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-coastline/</a>)
+をもとに加工して作成したデータ(data/coastline.json)を使用しています。
+</p>
+<h2>使用ライブラリ</h2>
+<p><a href="http://threejs.org/">Three.js</a></p>
+<p><a href="http://d3js.org/">D3.js</a></p>
+</section>
+<footer>
+<p>
+塾ほしな 〒358-0003 埼玉県入間市豊岡4丁目7-20 電話: 04-2962-7010<br>
+ホームページ: <a href="http://schoolhoshina.tumblr.com/">http://schoolhoshina.tumblr.com/</a><br>
+E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
+</p>
+</footer>
+</body>
+</html>
