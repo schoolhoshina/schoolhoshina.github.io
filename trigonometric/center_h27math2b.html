@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="utf-8">
+	<title>平成27年度センター試験 数学IIB第1問の図</title>
+    <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.99.1/jsxgraphcore.js"></script>
+	<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+	<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<style>
+#x { width: 4em; }
+.jxgbox {
+	width: 400px;
+	height: 400px;
+	margin: 5px 0;
+}
+.panel {
+	float: left;
+	margin: 5px 10px;
+}
+#value {
+	width: 7em;
+}
+footer {
+	clear: both;
+	font-size: small;
+	border-top: solid 1px grey;
+	margin-top: 10px;
+}
+</style>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52742687-2', 'auto');
+  ga('send', 'pageview');
+  ga('set', '&uid', {{USER_ID}}); // ログインしている user_id を使用してUser-ID を設定します。
+
+</script>
+</head>
+<body>
+<header>
+	<nav>
+		<a href="../index.html">塾ほしなのWeb教材</a>
+	</nav>
+</header>
+<section>
+<h1>平成27年度センター試験 数学IIB第1問の図</h1>
+<p>
+点$\mathrm{P}$の座標は$(2 \cos \theta, 2 \sin \theta)$,
+点$\mathrm{Q}$の座標は$(2 \cos \theta + \cos 7\theta, 2 \sin \theta + \sin 7\theta)$,
+ただし$\frac{\pi}{8} \leq \theta \leq \frac{\pi}{4}$である。
+</p>
+<div class="panel">
+<div id="box" class="jxgbox"></div>
+</div>
+</section>
+<footer>
+<!-- ライセンス表示 -->
+<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><a xmlns:cc="http://creativecommons.org/ns#" href="http://schoolhoshina.tumblr.com/" property="cc:attributionName" rel="cc:attributionURL">塾ほしな</a> を著作者とするこの 作品 は <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">クリエイティブ・コモンズの 表示 4.0 国際 ライセンス</a>で提供されています。<br></p>
+<!-- Author -->
+<p>
+塾ほしな 〒358-0003 埼玉県入間市豊岡4丁目7-20 電話: 04-2962-7010<br>
+ホームページ: <a href="http://schoolhoshina.tumblr.com/">http://schoolhoshina.tumblr.com/</a><br>
+E-mail: <a href="mailto:school.hoshina@gmail.com">school.hoshina@gmail.com</a>
+</p>
+</footer>
+<script>
+(function() {
+	
+	//////////////
+	// グラフ描画
+	
+	// ボードを作成
+	var brd = JXG.JSXGraph.initBoard(
+		'box', // DOM要素のid
+        {
+            boundingbox: [-0.5, 2.0, 2.5, -1.5], // [xmin, ymax, xmax, ymin]
+            axis: true, // 軸を描く
+            keepaspectratio: true // アスペクト比を保つ
+        }
+	);
+	
+	/////////////////
+	// 半径2の円を描く
+	
+	// 原点O
+	var origin = brd.create(
+        "point", // 図形の種類
+        [0, 0],  // [x座標, y座標]
+        {
+            fixed: true,          // 固定
+            name: "$\\mathrm{O}$", // 名前
+            fillColor: "#000000", // 塗り色
+            strokeColor: "none",  // 線色
+            size: 3 // 大きさ
+        }
+    );
+    origin.label.relativeCoords.setCoordinates(JXG.COORDS_BY_SCREEN, [-25, 0]);
+    
+	// 円
+	var circle = brd.create(
+        "circle",    // 図形の種類
+        [origin, 2], // [中心点, 半径]
+        {
+            strokeColor: "#cccccc", // 線色
+            strokeWidth: 1,         // 線の太さ
+            highlight: false // マウスオーバーでハイライトするか
+        }
+    );
+    
+    /////////////
+    // 点Pの可動範囲の弧を描く
+    
+    // 弧の始点
+    var pointPstart = brd.create(
+        "point",
+        [2.0 * Math.cos(Math.PI / 8.0), 2.0 * Math.sin(Math.PI / 8.0)],
+        { visible: false } // 非表示
+    );
+    // 弧の終点
+    var pointPend = brd.create(
+        "point",
+        [2.0 * Math.cos(Math.PI / 4.0), 2.0 * Math.sin(Math.PI / 4.0)],
+        { visible: false } // 非表示
+    );
+    // 弧
+    var arcP = brd.create(
+        "arc",
+        [origin, pointPstart, pointPend],  // [中心点, 始点, 終点]
+        {
+            strokeColor: "#000000",
+            strokeWidth: 2,
+            highlight: false
+        }
+    );
+	
+	// 弧arcP上を動く点P (2 cos theta, 2 sin theta)
+	var pointP = brd.create(
+		"glider", // 図形の種類
+        [
+            2 * Math.cos(Math.PI / 8),
+            2 * Math.sin(Math.PI / 8),
+            arcP
+        ], // [初期x座標, 初期y座標, 曲線]
+        {
+            name: "$\\mathrm{P}$",
+            fillColor: "#ffffff",
+            size: 5
+        }
+	);
+    
+    /////////////
+    // 角θを描く
+    
+    // 線分OP
+    var segmentOP = brd.create(
+        "segment", // 図形の種類
+        [origin, pointP] // [点1, 点2]
+    );
+
+    // 点(1, 0)
+	var point1 = brd.create(
+        "point", // 図形の種類
+        [1, 0], // [x座標, y座標]
+        {fixed: true, visible: false} // 固定する. 表示しない.
+    );
+    
+    // 角θ
+    var angleTheta = brd.create(
+        "angle", // 図形の種類
+        [point1, origin, pointP], // [点1, 点2, 点3]
+        {
+            radius: 0.25,
+            name: '$\\theta$'
+        }
+    );
+    
+    ////////
+    // 点Q = (2cos θ + cos 7θ, 2sinθ + sin 7θ)
+    
+    var pointQ = brd.create(
+        "point", // 図形の種類
+        [
+            function() {
+                return pointP.X() + Math.cos(7.0 * angleTheta.Value());
+            },
+            function() {
+                return pointP.Y() + Math.sin(7.0 * angleTheta.Value());
+            },
+        ], // [x座標, y座標]
+        {
+            fixed: true,
+            fillColor: "#000000",
+            strokeColor: "none",
+            size: 3,
+            name: "$\\mathrm{Q}$"
+        }
+    );
+    
+    //////////
+    // 線分PQ
+    var segmentPQ = brd.create(
+        "segment", // 図形の種類
+        [pointP, pointQ] // [点1, 点2]
+    );
+    
+    //////////
+    // 中心P, 半径1の補助円
+    var circle2 = brd.create(
+        "circle", // 図形の種類
+        [pointP, 1], // [中心, 半径]
+        {
+            strokeColor: "#cccccc", // 線色
+            strokeWidth: 1, // 線の太さ
+            highlight: false // マウスオーバーでハイライトするか
+        }
+    );
+    
+    ////////
+    // 角7θ
+    
+    // 補助点 P + (1, 0)
+    var point2 = brd.create(
+        "point", // 図形の種類
+        [
+            function() { return pointP.X() + 1; },
+            function() { return pointP.Y(); }
+        ],
+        {
+            visible: false
+        }
+    );
+    // 補助線 P -> P + (1, 0)
+    var segment1 = brd.create(
+        "segment",
+        [pointP, point2],
+        {
+            strokeColor: "#000000",
+            strokeWidth: 1,
+            dash: 2,
+            highlight: false
+        }
+    );
+    // 角7θ
+    var angle7Theta = brd.create(
+        "angle", // 図形の種類
+        [point2, pointP, pointQ], // [点1, 点2, 点3]
+        {
+            radius: 0.25,
+            name: "$7\\theta$"
+        }
+    );
+    
+    //////////
+    // 線分OQ
+    var segmentOQ = brd.create(
+        "segment",
+        [origin, pointQ]
+    );
+    
+    /////////////
+    // スライダー
+    
+    // 軸
+    var axis = brd.create(
+        "segment",
+        [[0.4, -0.6], [2.8, -0.6]],
+        {
+            strokeColor: "#000000",
+        }
+    );
+    // スライダー
+    var slider = brd.create(
+        "glider",
+        [0.4, -0.6, axis],
+        {
+            withLabel: false,
+            strokeColor: "#ff0000",
+            fillColor: "#ffffff",
+            size: 6,
+            showInfoBox: false,
+            face: "diamond"
+        }
+    );
+    // 目盛線
+    var ticks = brd.create(
+        "ticks",
+        [axis],
+        {
+            drawZero: true,
+            includeBoundaries: true,
+            ticksDistance: 2.4 / 3.0,
+            minorTicks: 2
+        }
+    );
+    // 軸タイトル
+    var titleLabel = brd.create(
+        "text",
+        [0, 0.05, '$\\\\theta$'],
+        {
+            anchor: axis.point1,
+            anchorY: "bottom",
+            fontSize: 16,
+            fixed: true
+        }
+    );
+    // pi/8のラベル
+    var label1 = brd.create(
+        "text",
+        [0, -0.1, '$\\\\frac{\\\\pi}{8}$'],
+        {
+            anchor: axis.point1,
+            anchorY: "top",
+            fontSize: 16,
+            fixed: true
+        }
+    );
+    // pi/4のラベル
+    var label2 = brd.create(
+        "text",
+        [0, -0.1, '$\\\\frac{\\\\pi}{4}$'],
+        {
+            anchor: axis.point2,
+            anchorY: "top",
+            fontSize: 16,
+            fixed: true
+        }
+    );
+    // pi/6のラベル位置
+    var anchor3 = brd.create(
+        "point",
+        [
+            function() { return (axis.point1.X() * 2.0 + axis.point2.X()) /3.0; },
+            function() { return (axis.point1.Y() * 2.0 + axis.point2.Y()) /3.0; }
+        ],
+        {
+            visible: false
+        }
+    );
+    // pi/6のラベル
+    var label3 = brd.create(
+        "text",
+        [0, -0.1, '$\\\\frac{\\\\pi}{6}$'],
+        {
+            anchor: anchor3,
+            anchorY: "top",
+            fontSize: 16,
+            fixed: true
+        }
+    );
+    
+    // 点Pの位置からthetaの値を取得する関数
+    function thetaValue() {
+        return Math.max(Math.min(
+            Math.atan2( pointP.Y(), pointP.X() ),
+            Math.PI/4.0), Math.PI/8.0);
+    }
+    
+    // 点Pをドラッグしたとき, グライダ-を動かす
+    pointP.on("drag", function() {
+        var r = thetaValue() / Math.PI * 8.0 - 1.0;
+        slider.coords.setCoordinates(
+            JXG.COORDS_BY_USER,
+            [axis.point1.X() * (1.0 - r) + axis.point2.X() * r,
+             axis.point1.Y() * (1.0 - r) + axis.point2.Y() * r]
+        );
+        slider.updateGlider();
+    });
+    
+    // スライダーを動かしたとき, 点Pを動かす
+    slider.on("drag", function(){
+        var r = axis.point1.Dist(slider) / axis.point1.Dist(axis.point2);
+        var theta = Math.PI / 8.0 * (1.0 + r);
+        pointP.coords.setCoordinates(
+            JXG.COORDS_BY_USER,
+            [2.0 * Math.cos(theta),
+             2.0 * Math.sin(theta)]
+        );
+        pointP.updateGlider();
+    });
+    
+    brd.update();
+    
+})();
+</script>
+</body>
+</html>
